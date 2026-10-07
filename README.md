@@ -53,13 +53,14 @@ proxy ใน [`server/`](server/) รับแค่ `stationuuid` แล้ว�
 ต้องใช้ Node.js 20 ขึ้นไป
 
 ```bash
-# terminal 1: proxy
+# terminal 1: proxy (ในโฟลเดอร์ server/)
 cd server
 npm install
 npm test
 npm start                      # ฟังที่ :3000 (ถ้า port ไม่ว่าง: PORT=3010 npm start)
 
-# terminal 2: หน้าเว็บ — ส่งสตรีม http ผ่าน proxy เพื่อทดสอบ
+# terminal 2: หน้าเว็บ — ที่โฟลเดอร์หลักของโปรเจกต์ ไม่ใช่ server/
+# (npm run dev ใน server/ คือ proxy แบบ watch ไม่ใช่หน้าเว็บ)
 VITE_PROXY_ALWAYS=1 npm run dev                                  # proxy ที่ :3000
 VITE_PROXY_ALWAYS=1 PROXY_TARGET=http://localhost:3010 npm run dev  # proxy ที่ port อื่น
 ```
