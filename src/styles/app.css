@@ -45,19 +45,33 @@ h1 small { display: block; font: 500 13px/1.4 var(--font-body); color: var(--mut
 /* station grid */
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(230px, 100%), 1fr)); gap: 10px; }
 .st {
-  display: grid; grid-template-columns: 64px 1fr auto; gap: 10px; align-items: center;
+  display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; gap: 12px; align-items: center;
   background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
   padding: 12px; text-align: left; color: inherit; font: inherit; cursor: pointer; min-width: 0;
 }
 .st:hover { border-color: var(--muted); }
 .st:focus-visible { outline: 2px solid var(--needle); outline-offset: 2px; }
 .st.playing { border-color: var(--needle); box-shadow: inset 3px 0 0 var(--needle); }
-.fq { font: 500 17px/1 var(--font-mono); font-variant-numeric: tabular-nums; }
+.st.off { opacity: .5; }
+.logo {
+  width: 44px; height: 44px; border-radius: 50%; overflow: hidden; background: var(--chip);
+  display: grid; place-items: center; flex: none;
+}
+.logo img { width: 100%; height: 100%; object-fit: contain; background: #fff; }
+.logo.initial { font: 600 18px var(--font-display); color: var(--muted); }
+.fq { font: 500 15px/1 var(--font-mono); font-variant-numeric: tabular-nums; text-align: right; }
 .fq small { display: block; font-size: 10px; color: var(--muted); margin-top: 4px; letter-spacing: .08em; }
 .meta { min-width: 0; }
 .nm { font-weight: 600; line-height: 1.3; overflow-wrap: anywhere; }
-.sub { font: 12px var(--font-mono); color: var(--muted); display: flex; gap: 8px; flex-wrap: wrap; margin-top: 3px; font-variant-numeric: tabular-nums; }
+.tg { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 4px; }
+.tg span { font-size: 11px; line-height: 1.5; padding: 0 7px; border-radius: 999px; background: var(--chip); color: var(--muted); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sub { font: 12px var(--font-mono); color: var(--muted); display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; font-variant-numeric: tabular-nums; }
 .sub .http { color: var(--warn); }
+.st.sk { cursor: default; animation: sk 1.2s ease-in-out infinite; }
+.st.sk .bar1, .st.sk .bar2 { height: 12px; border-radius: 6px; background: var(--chip); }
+.st.sk .bar1 { width: 70%; } .st.sk .bar2 { width: 45%; margin-top: 8px; }
+@media (prefers-reduced-motion: reduce) { .st.sk { animation: none; } }
+.grid > .empty, .grid > .error { grid-column: 1 / -1; }
 .fav { background: none; border: 0; padding: 6px; cursor: pointer; color: var(--muted); font-size: 18px; line-height: 1; border-radius: 6px; }
 .fav[aria-pressed="true"] { color: var(--lamp); }
 .fav:focus-visible { outline: 2px solid var(--needle); }
@@ -137,3 +151,21 @@ h1 small { display: block; font: 500 13px/1.4 var(--font-body); color: var(--mut
 .chip:focus-visible { outline: 2px solid var(--needle); outline-offset: 2px; }
 .error { grid-column: 1 / -1; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; color: var(--warn); }
 .error p { margin: 0; }
+
+/* pager */
+.pager { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; justify-content: center; }
+.pg {
+  min-width: 40px; height: 40px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--line);
+  background: var(--panel); color: var(--ink); font: 500 14px var(--font-body); font-variant-numeric: tabular-nums; cursor: pointer;
+}
+.pg:hover:not(:disabled) { border-color: var(--muted); }
+.pg:focus-visible { outline: 2px solid var(--needle); outline-offset: 2px; }
+.pg[aria-current="page"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.pg:disabled { opacity: .4; cursor: default; }
+.pg-gap { color: var(--muted); padding: 0 2px; }
+.pg-go { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); margin-left: 6px; font-variant-numeric: tabular-nums; }
+.pg-go input {
+  width: 72px; height: 40px; padding: 0 10px; border-radius: 999px; border: 1px solid var(--line);
+  background: var(--panel); color: var(--ink); font: 14px var(--font-mono);
+}
+.pg-go input:focus-visible { outline: 2px solid var(--needle); outline-offset: 1px; }

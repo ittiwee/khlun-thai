@@ -1,8 +1,8 @@
 // หน้าปัด FM: สเกล 88–108, จุดสถานีกดเล่นได้, เข็มเลื่อนตามสถานีที่เล่น
 import { FM_MIN, FM_MAX } from '../config.js';
+import { formatFreq as fmtFreq } from '../freq.js';
 
 const pct = (f) => ((f - FM_MIN) / (FM_MAX - FM_MIN)) * 100;
-export const fmtFreq = (f) => (f == null ? null : Number.isInteger(f) ? f.toFixed(1) : String(f));
 
 export function createTuner(root, { onSelect }) {
   root.innerHTML = `
