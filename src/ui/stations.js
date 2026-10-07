@@ -1,5 +1,6 @@
 // รายการการ์ดสถานี
 import { formatFreq } from '../freq.js';
+import { flagEl } from './countries.js';
 
 // 950 → "950", 12345 → "12.3k", 1234567 → "1.2M"
 export function formatCount(n) {
@@ -38,9 +39,10 @@ function logo(station) {
   return box;
 }
 
-export function createStationList(root, { onPlay, canPlay = () => true }) {
+export function createStationList(root, { onPlay, canPlay = () => true, isFavorite = () => false, onToggleFavorite }) {
   let items = [];
   let currentId = null;
+  let showCountry = false;
 
   function card({ station, freq }) {
     const playable = canPlay(station);
@@ -67,7 +69,15 @@ export function createStationList(root, { onPlay, canPlay = () => true }) {
 
     const sub = document.createElement('div');
     sub.className = 'sub';
-    const bits = [station.codec, station.bitrate ? `${station.bitrate}k` : '', `${formatCount(station.clickcount)} คลิก`];
+    if (showCountry && /^[A-Z]{2}$/i.test(station.countrycode || '')) {
+      const cc = document.createElement('span');
+      cc.className = 'cc';
+      cc.title = station.countrycode.toUpperCase();
+      cc.append(flagEl(station.countrycode), station.countrycode.toUpperCase());
+      sub.append(cc);
+    }
+    const clicks = Number.isFinite(station.clickcount) ? `${formatCount(station.clickcount)} คลิก` : '';
+    const bits = [station.codec, station.bitrate ? `${station.bitrate}k` : '', clicks];
     for (const text of bits.filter(Boolean)) {
       const s = document.createElement('span');
       s.textContent = text;
@@ -91,15 +101,49 @@ export function createStationList(root, { onPlay, canPlay = () => true }) {
     unit.textContent = freq != null ? 'MHz' : 'ONLINE';
     fq.append(unit);
 
-    el.append(logo(station), meta, fq);
+    const side = document.createElement('div');
+    side.className = 'side';
+    side.append(fq);
+    if (onToggleFavorite) side.append(favButton(station));
+
+    el.append(logo(station), meta, side);
     el.addEventListener('click', () => onPlay(station));
     el.addEventListener('keydown', (e) => {
+      if (e.target !== el) return; // Enter/Space บนปุ่ม ☆ ไม่ใช่การกดเล่น
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
         onPlay(station);
       }
     });
     return el;
+  }
+
+  function setFavButton(b, on, name) {
+    b.textContent = on ? '★' : '☆';
+    b.setAttribute('aria-pressed', String(on));
+    b.setAttribute('aria-label', on ? `เอา ${name} ออกจากโปรด` : `เพิ่ม ${name} ในโปรด`);
+    b.title = on ? 'เอาออกจากโปรด' : 'เพิ่มในโปรด';
+  }
+
+  function favButton(station) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'fav';
+    setFavButton(b, isFavorite(station.stationuuid), station.name);
+    b.addEventListener('click', (e) => {
+      e.stopPropagation();
+      onToggleFavorite(station);
+    });
+    return b;
+  }
+
+  // อัปเดตดาวทุกการ์ดหลังสถานีโปรดเปลี่ยน
+  function refreshFavorites() {
+    root.querySelectorAll('.st[data-id]').forEach((el) => {
+      const b = el.querySelector('.fav');
+      const it = items.find((x) => x.station.stationuuid === el.dataset.id);
+      if (b && it) setFavButton(b, isFavorite(it.station.stationuuid), it.station.name);
+    });
   }
 
   function message(text, { retry } = {}) {
@@ -134,8 +178,9 @@ export function createStationList(root, { onPlay, canPlay = () => true }) {
     );
   }
 
-  function setStations(next, { empty = 'ไม่พบสถานีที่ตรงกับคำค้น' } = {}) {
+  function setStations(next, { empty = 'ไม่พบสถานีที่ตรงกับคำค้น', showCountry: multi = false } = {}) {
     items = next;
+    showCountry = multi;
     root.removeAttribute('aria-busy');
     if (!items.length) {
       message(empty);
@@ -154,5 +199,5 @@ export function createStationList(root, { onPlay, canPlay = () => true }) {
     root.querySelectorAll('.st[data-id]').forEach((el) => el.classList.toggle('playing', el.dataset.id === id));
   }
 
-  return { setLoading, setStations, setError, setCurrent };
+  return { setLoading, setStations, setError, setCurrent, refreshFavorites };
 }

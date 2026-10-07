@@ -21,6 +21,8 @@ describe('parseFreq', () => {
     ['106 Family News Radio', 106],
     ['Mcot Radio Buriram 92.0 FM', 92],
     ['94 Smile', 94],
+    ['ลูกทุ่ง รักไทย ๙๐ FM', 90],
+    ['คลื่น ๑๐๒.๕', 102.5],
   ])('%s → %s', (name, f) => {
     expect(parseFreq(name)).toBe(f);
   });

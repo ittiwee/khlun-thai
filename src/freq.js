@@ -14,7 +14,8 @@ function toFreq(intPart, frac) {
 
 export function parseFreq(name) {
   if (!name) return null;
-  const text = String(name);
+  // เลขไทย ๐–๙ → 0–9 (เช่น "ลูกทุ่ง รักไทย ๙๐")
+  const text = String(name).replace(/[๐-๙]/g, (d) => String(d.charCodeAt(0) - 0x0e50));
   let decimal = null;
   let leading = null;
   for (const m of text.matchAll(NUM)) {

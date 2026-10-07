@@ -4,6 +4,16 @@ import { COUNTRY_CACHE_MS, PAGE_SIZE } from './config.js';
 const SERVERS_URL = 'https://all.api.radio-browser.info/json/servers';
 const FALLBACK_HOSTS = ['de1', 'nl1', 'at1'].map((h) => `${h}.api.radio-browser.info`);
 const COUNTRY_CACHE_KEY = 'kt-countries-v1';
+const TAG_CACHE_KEY = 'kt-tags-v1';
+// tag ยอดนิยมที่ไม่ใช่แนวเพลง
+const TAG_DENY = new Set([
+  'radio', 'fm', 'am', 'music', 'música', 'musica', 'estación', 'entretenimiento', 'méxico', 'mexico',
+  'norteamérica', 'latinoamérica', 'américa', 'america', 'español', 'spanish', 'english', 'moi merino',
+  'música en español', 'public radio', 'community radio', 'local news', 'regional', 'internet radio',
+  'online radio', 'webradio', 'web radio', 'stream', 'live', 'station', 'variety', 'various', 'misc',
+  'deutsch', 'german', 'français', 'french', 'italiano', 'italian', 'usa', 'united states', 'brasil', 'brazil',
+  'méxico df', 'noticias', 'deutschland', 'france', 'españa', 'argentina', 'colombia',
+]);
 
 const STATION_FIELDS = [
   'stationuuid', 'name', 'url_resolved', 'homepage', 'favicon', 'tags', 'countrycode',
@@ -153,17 +163,18 @@ export function createApi({
     }
   }
 
-  // สถานีตามประเทศ (+ tag) เรียงตามความนิยม — cache ในหน่วยความจำ key = ประเทศ + tag + หน้า
+  // สถานีเรียงตามความนิยม — filter = { countrycode?, tag?, name? }
+  // cache ในหน่วยความจำ key = ประเทศ + tag + ชื่อ + หน้า
   const stationCache = new Map();
-  async function getStations({ countrycode, tag = '', page = 1 }) {
-    const key = `${countrycode}|${tag}|${page}`;
+  const searchParams = ({ countrycode = '', tag = '', name = '' }) => ({ countrycode, tag, name, hidebroken: 'true' });
+
+  async function getStations({ page = 1, ...filter }) {
+    const key = `${filter.countrycode || ''}|${filter.tag || ''}|${(filter.name || '').toLowerCase()}|${page}`;
     if (stationCache.has(key)) return stationCache.get(key);
     const raw = await request('/json/stations/search', {
-      countrycode,
-      tag,
+      ...searchParams(filter),
       order: 'clickcount',
       reverse: 'true',
-      hidebroken: 'true',
       limit: PAGE_SIZE,
       offset: (page - 1) * PAGE_SIZE,
     });
@@ -172,35 +183,42 @@ export function createApi({
     return list;
   }
 
+  const hasPage = async (filter, page) =>
+    (await request('/json/stations/search', { ...searchParams(filter), limit: 1, offset: (page - 1) * PAGE_SIZE })).length > 0;
+
   // หน้าสุดท้ายที่มีสถานีจริง (stationcount ของประเทศนับสถานีเสียด้วย จึงสูงกว่าจริง)
   // lo = หน้าที่รู้ว่ามีสถานี, hi = หน้าที่รู้ว่าว่าง — ค้นแบบ binary ด้วย limit=1
-  async function findLastPage({ countrycode, tag = '', lo, hi }) {
+  async function findLastPage({ lo, hi, ...filter }) {
     while (hi - lo > 1) {
       const mid = Math.floor((lo + hi) / 2);
-      const probe = await request('/json/stations/search', {
-        countrycode,
-        tag,
-        hidebroken: 'true',
-        limit: 1,
-        offset: (mid - 1) * PAGE_SIZE,
-      });
-      if (probe.length) lo = mid;
+      if (await hasPage(filter, mid)) lo = mid;
       else hi = mid;
     }
     return lo;
   }
 
   // ตรวจว่าหน้า upper (จาก stationcount) มีสถานีจริงไหม ถ้าว่างหาหน้าสุดท้ายจริง
-  async function verifyLastPage({ countrycode, tag = '', upper }) {
-    const probe = await request('/json/stations/search', {
-      countrycode,
-      tag,
-      hidebroken: 'true',
-      limit: 1,
-      offset: (upper - 1) * PAGE_SIZE,
-    });
-    if (probe.length) return upper;
-    return findLastPage({ countrycode, tag, lo: 1, hi: upper });
+  async function verifyLastPage({ upper, ...filter }) {
+    if (await hasPage(filter, upper)) return upper;
+    return findLastPage({ ...filter, lo: 1, hi: upper });
+  }
+
+  // แนวเพลงยอดนิยม — ตัด tag ที่ไม่ใช่แนวเพลง (ชื่อประเทศ ภาษา คำทั่วไป), cache 24 ชม.
+  async function getTags({ limit = 20 } = {}) {
+    const cached = storage.get(TAG_CACHE_KEY);
+    const valid = cached && Array.isArray(cached.data) && cached.data.length;
+    if (valid && now() - cached.time < COUNTRY_CACHE_MS) return cached.data.slice(0, limit);
+    try {
+      const raw = await request('/json/tags', { order: 'stationcount', reverse: 'true', hidebroken: 'true', limit: 80 });
+      const data = raw
+        .map((t) => String(t.name || '').trim().toLowerCase())
+        .filter((n) => n && n.length <= 24 && !TAG_DENY.has(n));
+      storage.set(TAG_CACHE_KEY, { time: now(), data });
+      return data.slice(0, limit);
+    } catch (err) {
+      if (valid) return cached.data.slice(0, limit);
+      throw err;
+    }
   }
 
   // นับคลิกให้สถานี (มารยาทของ Radio Browser) แล้วคืน URL ที่ใช้เล่น — ถ้าไม่สำเร็จใช้ url_resolved
@@ -213,7 +231,7 @@ export function createApi({
     }
   }
 
-  return { request, getCountries, getStations, findLastPage, verifyLastPage, clickUrl };
+  return { request, getCountries, getStations, findLastPage, verifyLastPage, getTags, clickUrl };
 }
 
 export const api = createApi();
