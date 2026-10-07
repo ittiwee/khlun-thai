@@ -1,0 +1,42 @@
+# รัน: npm run build (ที่ root) แล้ว docker compose -f deploy/docker-compose.yml up --build
+# เปิด http://localhost:8080 (เปลี่ยน port ได้ด้วย WEB_PORT=8090)
+name: khlun-thai
+
+services:
+  web:
+    image: nginx:alpine
+    restart: unless-stopped
+    ports:
+      - "${WEB_PORT:-8080}:80"
+    volumes:
+      - ../dist:/usr/share/nginx/html:ro
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      proxy:
+        condition: service_healthy
+    networks:
+      app:
+        ipv4_address: 172.30.0.10
+
+  proxy:
+    build: ../server
+    restart: unless-stopped
+    env_file:
+      - path: ../server/.env
+        required: false
+    environment:
+      # Nginx (web) มี IP คงที่ใน network นี้ — เชื่อ X-Forwarded-For จากมันเท่านั้น
+      # ตั้งตรงนี้เพราะผูกกับโครง network ของ compose ไม่ใช่ค่าที่ผู้ดูแลควรแก้ใน .env
+      TRUSTED_PROXY: 172.30.0.10
+      PORT: "3000"
+    # ไม่มี ports: — proxy ไม่เปิดออกนอก คุยกับ web ผ่าน network ภายในเท่านั้น
+    expose:
+      - "3000"
+    networks:
+      - app
+
+networks:
+  app:
+    ipam:
+      config:
+        - subnet: 172.30.0.0/24
