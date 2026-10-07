@@ -1,0 +1,61 @@
+<!doctype html>
+<!-- ต้นฉบับภาพแชร์ (public/og-image.png 1200×630) — แก้แล้ว render ใหม่ด้วย headless Chrome ขนาด 1200×630 -->
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=IBM+Plex+Sans+Thai:wght@500&family=IBM+Plex+Mono:wght@500&display=block">
+<style>
+  html, body { margin: 0; }
+  body {
+    width: 1200px; height: 630px; overflow: hidden; box-sizing: border-box;
+    background: #121714; color: #e4ebe6; padding: 64px 72px 0;
+    font-family: "IBM Plex Sans Thai", sans-serif;
+    display: grid; grid-template-rows: auto 1fr;
+  }
+  .top { display: flex; align-items: center; gap: 36px; }
+  .logo { width: 150px; height: 150px; flex: none; border-radius: 33px; box-shadow: 0 0 0 2px #2c3631; }
+  h1 { font: 700 128px/1 "Chakra Petch", sans-serif; margin: 0; letter-spacing: .01em; }
+  .sub { font-size: 40px; color: #c9d3cd; margin-top: 14px; }
+  .stats { font: 500 26px "IBM Plex Mono", "IBM Plex Sans Thai", monospace; color: #93a099; margin-top: 10px; letter-spacing: .02em; }
+  .face {
+    align-self: end; margin: 0 -72px; height: 190px; position: relative;
+    background: #0d110f; border-top: 2px solid #2c3631; color: #e9b25a;
+  }
+  .scale { position: absolute; left: 72px; right: 72px; top: 92px; height: 0; border-top: 2px solid currentColor; }
+  .tick { position: absolute; bottom: 0; width: 2px; background: currentColor; }
+  .tick.major { height: 30px; } .tick.minor { height: 14px; opacity: .6; }
+  .num { position: absolute; top: 14px; transform: translateX(-50%); font: 500 24px "IBM Plex Mono", monospace; }
+  .needle { position: absolute; top: 18px; bottom: 30px; width: 6px; margin-left: -3px; background: #ff6a43; border-radius: 3px; }
+  .needle::after { content: ""; position: absolute; top: -10px; left: -7px; width: 20px; height: 20px; border-radius: 50%; background: #ff6a43; }
+  .readout { position: absolute; right: 72px; top: -96px; font: 500 64px "IBM Plex Mono", monospace; color: #e9b25a; }
+  .readout span { font-size: 26px; margin-left: 8px; }
+</style>
+</head>
+<body>
+  <div class="top">
+    <img class="logo" src="../public/favicon.svg" alt="">
+    <div>
+      <h1>คลื่นไทย</h1>
+      <div class="sub">ฟังวิทยุออนไลน์ฟรี จากทุกประเทศทั่วโลก</div>
+      <div class="stats">60,000+ สถานี · 200+ ประเทศ</div>
+    </div>
+  </div>
+  <div class="face">
+    <div class="readout">93.0<span>MHz</span></div>
+    <div class="scale" id="scale"></div>
+  </div>
+<script>
+  const MIN = 87.5, MAX = 108, pct = (f) => ((f - MIN) / (MAX - MIN)) * 100;
+  const scale = document.getElementById('scale');
+  for (let f = 88; f <= 108; f += 0.5) {
+    const major = f % 2 === 0;
+    scale.insertAdjacentHTML('beforeend', `<div class="tick ${major ? 'major' : 'minor'}" style="left:${pct(f)}%"></div>`);
+    if (major) scale.insertAdjacentHTML('beforeend', `<div class="num" style="left:${pct(f)}%">${f}</div>`);
+  }
+  const needle = document.createElement('div');
+  needle.className = 'needle';
+  needle.style.left = `calc(72px + (100% - 144px) * ${pct(93) / 100})`;
+  document.querySelector('.face').append(needle);
+</script>
+</body>
+</html>
