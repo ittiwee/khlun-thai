@@ -3,8 +3,10 @@ import assert from 'node:assert/strict';
 import { buildServer } from '../src/index.js';
 import { loadConfig, ConfigError } from '../src/config.js';
 
+const fakeRb = { mirror: () => 'de1.api.radio-browser.info', lookup: async () => null };
+
 test('GET /healthz ตอบ ok พร้อม no-store', async () => {
-  const app = await buildServer(loadConfig({}), { logger: false });
+  const app = await buildServer(loadConfig({}), { logger: false, radioBrowser: fakeRb });
   const res = await app.inject({ method: 'GET', url: '/healthz' });
   assert.equal(res.statusCode, 200);
   assert.equal(res.headers['cache-control'], 'no-store');
@@ -12,12 +14,12 @@ test('GET /healthz ตอบ ok พร้อม no-store', async () => {
   assert.equal(body.ok, true);
   assert.equal(typeof body.uptime, 'number');
   assert.equal(body.activeStreams, 0);
-  assert.ok('mirror' in body);
+  assert.equal(body.mirror, 'de1.api.radio-browser.info');
   await app.close();
 });
 
 test('path อื่นตอบ 404 เป็น JSON ภาษาไทย', async () => {
-  const app = await buildServer(loadConfig({}), { logger: false });
+  const app = await buildServer(loadConfig({}), { logger: false, radioBrowser: fakeRb });
   const res = await app.inject({ method: 'GET', url: '/nope' });
   assert.equal(res.statusCode, 404);
   assert.deepEqual(Object.keys(res.json()).sort(), ['error', 'message']);

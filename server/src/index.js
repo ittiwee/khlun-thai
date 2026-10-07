@@ -3,10 +3,12 @@ import Fastify, { LogController } from 'fastify';
 import { pathToFileURL } from 'node:url';
 import { loadConfig, loadEnvFile, ConfigError } from './config.js';
 import healthRoutes from './routes/health.js';
+import { createRadioBrowser } from './radiobrowser.js';
 
 const SHUTDOWN_GRACE_MS = 10_000;
 
-export async function buildServer(config, { logger = true } = {}) {
+// deps ฉีดได้เพื่อ test (ไม่ให้แตะเครือข่ายจริง)
+export async function buildServer(config, { logger = true, radioBrowser } = {}) {
   const app = Fastify({
     logger,
     // เชื่อ X-Forwarded-For เฉพาะเมื่อ request มาจาก Nginx ที่กำหนด
@@ -19,6 +21,16 @@ export async function buildServer(config, { logger = true } = {}) {
 
   app.decorate('config', config);
 
+  const rb = radioBrowser ?? createRadioBrowser({ userAgent: config.rbUserAgent, ttlSec: config.lookupTtlSec, log: app.log });
+  app.decorate('radioBrowser', rb);
+  if (!radioBrowser) {
+    // โหลดรายชื่อ mirror ตอนเริ่ม (ไม่บล็อกการเปิด server — ใช้รายชื่อสำรองไปก่อน) และรีเฟรชทุกชั่วโมง
+    app.addHook('onReady', async () => {
+      rb.start();
+    });
+    app.addHook('onClose', async () => rb.stop());
+  }
+
   app.setNotFoundHandler((_req, reply) => {
     reply.code(404).send({ error: 'not_found', message: 'ไม่พบหน้าที่ขอ' });
   });
@@ -28,7 +40,7 @@ export async function buildServer(config, { logger = true } = {}) {
     reply.code(status).send({ error: status >= 500 ? 'internal' : 'bad_request', message: status >= 500 ? 'เกิดข้อผิดพลาดภายใน' : 'คำขอไม่ถูกต้อง' });
   });
 
-  await app.register(healthRoutes);
+  await app.register(healthRoutes, { getMirror: () => rb.mirror() });
   return app;
 }
 
