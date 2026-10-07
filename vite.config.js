@@ -34,4 +34,10 @@ function siteMeta(siteUrl) {
 
 export default defineConfig({
   plugins: [siteMeta(process.env.SITE_URL)],
+  server: {
+    // npm run dev: ส่ง /stream ต่อให้ stream proxy (server/) — เปลี่ยนปลายทางได้ด้วย PROXY_TARGET
+    proxy: {
+      '/stream': { target: process.env.PROXY_TARGET || 'http://localhost:3000', changeOrigin: false },
+    },
+  },
 });

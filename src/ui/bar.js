@@ -13,6 +13,7 @@ const ERROR_TEXT = {
   offline: 'สถานีออฟไลน์ ลองสถานีอื่น',
   mixed: 'สตรีม http ถูกบล็อกบนหน้า https',
   busy: 'เซิร์ฟเวอร์เต็มชั่วคราว ลองใหม่อีกครั้ง',
+  unsupported: 'สถานีนี้ยังเล่นผ่าน proxy ไม่ได้',
 };
 
 export function createBar(root, { onToggle, onPrev, onNext, onVolume }) {

@@ -1,8 +1,8 @@
 // เล่นสตรีมผ่าน <audio> + hls.js และจัดการ Media Session — ห้ามแตะ DOM ยกเว้น <audio>
 //
 // สถานะที่ส่งออกทาง on('status'):
-//   { state: 'idle' | 'connecting' | 'buffering' | 'playing' | 'paused' | 'error', reason?: 'offline' | 'mixed' | 'busy' }
-import { PROXY_BASE } from './config.js';
+//   { state: 'idle' | 'connecting' | 'buffering' | 'playing' | 'paused' | 'error', reason?: 'offline' | 'mixed' | 'busy' | 'unsupported' }
+import { PROXY_BASE, PROXY_ALWAYS } from './config.js';
 
 // wav เปล่า ใช้ "ปลดล็อก" <audio> ใน gesture ของผู้ใช้ (iOS Safari ไม่ยอมให้ play() หลัง await fetch)
 const SILENT = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=';
@@ -17,12 +17,25 @@ export function isMixedContent(url, pageProtocol = globalThis.location?.protocol
   return pageProtocol === 'https:' && /^http:/i.test(url || '');
 }
 
-// เลือกว่าจะเล่นจากไหน: ตรง, ผ่าน proxy (http บนหน้า https) หรือเล่นไม่ได้
-// proxy ยังไม่รองรับ HLS (ดู docs/PROXY.md) จึงถือว่า HLS แบบ http บนหน้า https เล่นไม่ได้
-export function resolvePlayback(station, url, { protocol = globalThis.location?.protocol, proxyBase = PROXY_BASE } = {}) {
-  if (!isMixedContent(url, protocol)) return { url, viaProxy: false };
-  if (!proxyBase || isHlsStation(station, url)) return { blocked: true };
+// เลือกว่าจะเล่นจากไหน: ตรง, ผ่าน proxy (http บนหน้า https) หรือเล่นไม่ได้ (reason บอกสาเหตุ)
+// proxy ยังไม่รองรับ HLS (ดู docs/PROXY.md) จึงถือว่า HLS แบบ http ที่ต้องผ่าน proxy เล่นไม่ได้
+export function resolvePlayback(
+  station,
+  url,
+  { protocol = globalThis.location?.protocol, proxyBase = PROXY_BASE, always = PROXY_ALWAYS } = {},
+) {
+  const needsProxy = isMixedContent(url, protocol) || (always && Boolean(proxyBase) && /^http:/i.test(url || ''));
+  if (!needsProxy) return { url, viaProxy: false };
+  if (!proxyBase) return { blocked: true, reason: 'mixed' };
+  if (isHlsStation(station, url)) return { blocked: true, reason: 'unsupported' };
   return { url: proxyBase + encodeURIComponent(station.stationuuid), viaProxy: true };
+}
+
+// รหัสที่ proxy ตอบ → สาเหตุที่แสดงให้ผู้ใช้ (docs/PROXY.md ข้อ 9)
+export function reasonForProxyStatus(status) {
+  if (status === 429 || status === 503) return 'busy';
+  if (status === 415) return 'unsupported';
+  return 'offline'; // 403 / 404 / 502 / 504 / อื่นๆ / proxy ไม่ตอบ
 }
 
 export function canPlay(station, opts) {
@@ -45,16 +58,18 @@ export function createPlayer(audio) {
     listeners.status.forEach((fn) => fn(next));
   }
 
-  // audio ไม่บอก status code — ถ้าเล่นผ่าน proxy ให้ถาม HEAD เพื่อแยก "เต็ม" ออกจาก "ออฟไลน์"
+  // audio ไม่บอก status code — ถ้าเล่นผ่าน proxy ให้ถาม HEAD เพื่ออ่านรหัสมาแสดงสาเหตุ
+  let failing = 0; // token ที่กำลังหาสาเหตุอยู่ — audio 'error' กับ play() reject มักมาพร้อมกัน ให้ถาม HEAD ครั้งเดียว
   async function fail(t) {
-    if (t !== token || state === 'error') return;
+    if (t !== token || state === 'error' || failing === t) return;
+    failing = t;
     let reason = source && isMixedContent(source.url) ? 'mixed' : 'offline';
     if (source?.viaProxy) {
       try {
         const res = await fetch(source.url, { method: 'HEAD', cache: 'no-store' });
-        if (res.status === 429 || res.status === 503) reason = 'busy';
+        reason = res.ok ? 'offline' : reasonForProxyStatus(res.status);
       } catch {
-        // proxy ไม่ตอบ ถือว่าออฟไลน์
+        reason = 'offline'; // proxy ไม่ตอบ
       }
     }
     if (t === token) emit({ state: 'error', reason });
@@ -97,7 +112,7 @@ export function createPlayer(audio) {
     const pick = resolvePlayback(station, raw);
     if (pick.blocked) {
       reset();
-      emit({ state: 'error', reason: 'mixed' });
+      emit({ state: 'error', reason: pick.reason });
       return;
     }
     source = pick;
