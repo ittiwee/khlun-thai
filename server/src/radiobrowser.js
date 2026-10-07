@@ -82,7 +82,7 @@ export function createRadioBrowser({
       }
       log.warn({ count: 0 }, 'radio browser server list empty, keep current mirrors');
     } catch (err) {
-      log.warn({ err: { message: err.message } }, 'radio browser server list failed, keep current mirrors');
+      log.warn({ error: { message: err.message } }, 'radio browser server list failed, keep current mirrors');
     }
     return false;
   }
@@ -103,7 +103,7 @@ export function createRadioBrowser({
         if (err.status >= 400 && err.status < 500 && err.status !== 429) break;
       }
     }
-    log.warn({ err: { message: lastErr?.message } }, 'radio browser lookup failed');
+    log.warn({ error: { message: lastErr?.message } }, 'radio browser lookup failed');
     throw new LookupError('ติดต่อ Radio Browser ไม่ได้');
   }
 

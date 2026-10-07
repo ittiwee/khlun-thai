@@ -240,9 +240,9 @@ export async function openUpstream(startUrl, {
 }
 
 // ---------- ส่งเสียงต่อให้ client ----------
-// คืน Promise<{ reason, bytes }> — reason: client_closed | upstream_end | idle_timeout | error | max_duration
+// คืน Promise<{ reason, bytes }> — reason: client_closed | upstream_end | idle_timeout | error | max_duration | shutdown
 // ทำความสะอาดทุกกรณี: ทำลายทั้งสองฝั่งเสมอ ไม่มี socket ค้าง
-export function relay(source, dest, { idleTimeoutMs = 30000, maxDurationMs = 6 * 60 * 60 * 1000, onBytes } = {}) {
+export function relay(source, dest, { idleTimeoutMs = 30000, maxDurationMs = 6 * 60 * 60 * 1000, onBytes, signal } = {}) {
   return new Promise((resolve) => {
     let bytes = 0;
     let reason = null;
@@ -256,6 +256,14 @@ export function relay(source, dest, { idleTimeoutMs = 30000, maxDurationMs = 6 *
       source.destroy();
       dest.destroy();
     }, maxDurationMs);
+    // signal abort (เช่นตอนปิด server) → ตัดทั้งสองฝั่ง
+    const onAbort = () => {
+      set('shutdown');
+      source.destroy();
+      dest.destroy();
+    };
+    if (signal?.aborted) queueMicrotask(onAbort);
+    else signal?.addEventListener('abort', onAbort, { once: true });
     function onIdle() {
       set('idle_timeout');
       source.destroy();
@@ -277,6 +285,7 @@ export function relay(source, dest, { idleTimeoutMs = 30000, maxDurationMs = 6 *
       finished = true;
       clearTimeout(idle);
       clearTimeout(max);
+      signal?.removeEventListener('abort', onAbort);
       if (err) set('error');
       set('upstream_end');
       // pipeline ทำลายทั้งคู่เมื่อ error อยู่แล้ว — ทำซ้ำเผื่อกรณีจบปกติให้แน่ใจว่าไม่มีอะไรค้าง
