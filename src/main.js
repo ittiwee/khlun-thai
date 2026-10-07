@@ -9,6 +9,7 @@ import { createBar } from './ui/bar.js';
 import { createStationList } from './ui/stations.js';
 import { createCountryGrid, localizeCountries, thaiName, flagEl } from './ui/countries.js';
 import { SAMPLE_STATIONS } from './sample-stations.js';
+import { registerServiceWorker } from './sw-register.js';
 
 const $ = (id) => document.getElementById(id);
 
@@ -91,3 +92,4 @@ async function loadCountries() {
 
 renderWhere();
 loadCountries();
+registerServiceWorker();
