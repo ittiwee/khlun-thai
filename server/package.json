@@ -1,0 +1,18 @@
+{
+  "name": "khlun-thai-proxy",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Stream proxy สำหรับคลื่นไทย: เล่นสตรีม http บนหน้า https โดยรับแค่ stationuuid",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "fastify": "^5.12.5"
+  }
+}

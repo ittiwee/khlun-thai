@@ -1,3 +1,6 @@
 node_modules/
 dist/
 *:Zone.Identifier
+.env
+.env.*
+!.env.example
