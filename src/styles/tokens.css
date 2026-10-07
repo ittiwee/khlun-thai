@@ -1,0 +1,29 @@
+/* สี ฟอนต์ ระยะ — สว่างเป็นค่าเริ่มต้น มืดตามเครื่อง หรือบังคับด้วย data-theme */
+:root {
+  --bg: #e9ece6;
+  --panel: #f6f7f3;
+  --face: #f3ecd6;
+  --face-ink: #4a3f22;
+  --ink: #1b221e;
+  --muted: #5c6760;
+  --line: #cfd5cc;
+  --needle: #c8401f;
+  --lamp: #e39a2c;
+  --chip: #dde2d9;
+  --warn: #9a5a00;
+  --font-display: "Chakra Petch", "Sukhumvit Set", "Tahoma", sans-serif;
+  --font-body: "IBM Plex Sans Thai", "Sukhumvit Set", "Leelawadee UI", "Tahoma", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --radius: 10px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #121714; --panel: #1a211d; --face: #0d110f; --face-ink: #e9b25a; --ink: #e4ebe6; --muted: #93a099;
+    --line: #2c3631; --needle: #ff6a43; --lamp: #f2ae45; --chip: #242d28; --warn: #f0b45c; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #121714; --panel: #1a211d; --face: #0d110f; --face-ink: #e9b25a; --ink: #e4ebe6; --muted: #93a099;
+  --line: #2c3631; --needle: #ff6a43; --lamp: #f2ae45; --chip: #242d28; --warn: #f0b45c; color-scheme: dark;
+}

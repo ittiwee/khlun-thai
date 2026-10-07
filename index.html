@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>คลื่นไทย</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>คลื่นไทย<small>วิทยุออนไลน์จากทั่วโลก เลือกสถานีแล้วกดฟังได้เลย</small></h1>
+    <div class="count" id="count"></div>
+  </header>
+
+  <section class="tuner" id="tuner" aria-label="หน้าปัดคลื่น FM"></section>
+
+  <div class="grid" id="grid"></div>
+
+  <footer class="credit">ข้อมูลสถานีจาก <a href="https://www.radio-browser.info/" target="_blank" rel="noopener">Radio Browser (radio-browser.info)</a></footer>
+</div>
+
+<div class="bar" id="bar"></div>
+
+<audio id="audio" preload="none"></audio>
+<script type="module" src="/src/main.js"></script>
+</body>
+</html>
