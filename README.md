@@ -1,8 +1,102 @@
 # คลื่นไทย
 
-เว็บฟังวิทยุออนไลน์จากทุกประเทศ ข้อมูลสถานีจาก [Radio Browser](https://www.radio-browser.info/)
+เว็บฟังวิทยุออนไลน์ฟรีจากทุกประเทศทั่วโลก ข้อมูลสถานีจาก [Radio Browser](https://www.radio-browser.info/)
 
-> เอกสารส่วนภาพรวม การรัน dev/build/test และการ deploy หน้าเว็บ จะเขียนเพิ่มในขั้น 6 ของ [docs/PLAN.md](docs/PLAN.md)
+![คลื่นไทย — หน้าปัดวิทยุ FM](public/og-image.png)
+
+- สถานีจากกว่า 200 ประเทศ เรียงตามความนิยม แบ่งหน้าละ 30 สถานี
+- ตารางธงประเทศ ค้นหาได้ทั้งชื่อไทย ชื่ออังกฤษ และรหัส 2 หลัก (เช่น `jp`, `ญี่ปุ่น`, `japan`)
+- หน้าปัด FM 87.5–108 MHz เข็มเลื่อนตามสถานี (อ่านความถี่จากชื่อสถานี)
+- ค้นหาสถานี กรองตามแนวเพลง สถานีโปรด และประวัติฟังล่าสุด (เก็บในเครื่อง)
+- เล่น HLS ผ่าน hls.js, ปุ่มบนหน้าจอล็อกมือถือ (Media Session), ธีมสว่าง/มืดตามเครื่อง
+- ใช้คีย์บอร์ดได้ทุกปุ่ม: `Space` เล่น/หยุด, `←` `→` สถานีก่อนหน้า/ถัดไป
+- ลิงก์ตรงไปยังประเทศและหน้าได้ เช่น `#jp/2`, `#fav`, `#recent`
+- รีเฟรชได้แม้ออฟไลน์ (service worker ใน production build)
+- มี stream proxy (ไม่บังคับ) สำหรับเล่นสตรีม `http://` บนหน้า `https://`
+
+## เริ่มต้นใช้งาน
+
+ต้องใช้ [Node.js](https://nodejs.org/) 20 ขึ้นไป (แนะนำ 24 LTS) และ npm
+
+```bash
+git clone https://github.com/<owner>/khlun-thai.git
+cd khlun-thai
+npm ci
+npm run dev
+```
+
+เปิด URL ที่ขึ้นในหน้าจอ (ปกติ `http://localhost:5173`)
+
+### คำสั่ง
+
+| คำสั่ง | ทำอะไร |
+|---|---|
+| `npm run dev` | dev server พร้อม hot reload |
+| `npm test` | unit test (Vitest) |
+| `npm run build` | build ไฟล์ static ลง `dist/` |
+| `npm run preview` | เปิด `dist/` ที่ build แล้ว (ทดสอบ service worker / ออฟไลน์ได้ที่นี่) |
+
+### โครงสร้างโปรเจกต์
+
+```
+├── index.html            หน้าเว็บ
+├── src/
+│   ├── main.js           ประกอบทุก module
+│   ├── config.js         ค่าคงที่ (PAGE_SIZE, PROXY_BASE ฯลฯ)
+│   ├── api.js            Radio Browser: เลือก mirror, fallback, cache
+│   ├── player.js         <audio>, hls.js, Media Session
+│   ├── router.js         hash routing
+│   ├── store.js          สถานีโปรด, ฟังล่าสุด, ระดับเสียง
+│   ├── freq.js           อ่านความถี่ FM จากชื่อสถานี
+│   ├── ui/               หน้าปัด, การ์ด, ตัวแบ่งหน้า, ตารางธง, chips, แถบควบคุม
+│   └── styles/           CSS tokens (สว่าง/มืด) และ layout
+├── public/               favicon, ภาพแชร์, manifest, service worker
+├── server/               stream proxy (Node + Fastify) — ไม่บังคับ
+├── deploy/               docker compose + nginx
+└── docs/                 แผนงาน (PLAN.md, PROXY.md)
+```
+
+## การตั้งค่า
+
+ค่าที่ใช้ตอน `npm run build` / `npm run dev` (ตั้งเป็นตัวแปร environment)
+
+| ตัวแปร | ค่าเริ่มต้น | ความหมาย |
+|---|---|---|
+| `VITE_PROXY_BASE` | `/stream/` | ที่อยู่ของ stream proxy (ดูหัวข้อถัดไป) |
+| `BASE_PATH` | `/` | path ที่เว็บอยู่ เช่น `/khlun-thai/` สำหรับ GitHub Pages |
+| `SITE_URL` | ไม่ตั้ง | URL เต็มของเว็บที่ deploy แล้ว ใช้ทำ canonical และภาพตอนแชร์ลิงก์ (Facebook, LINE, X ต้องการ URL เต็มของรูป) |
+| `VITE_PROXY_ALWAYS` | ไม่ตั้ง | `1` = ส่งสตรีม http ผ่าน proxy แม้หน้าเว็บเป็น http (ทดสอบตอน dev) |
+| `PROXY_TARGET` | `http://localhost:3000` | ปลายทางที่ `npm run dev` ส่ง `/stream` ต่อไปให้ |
+
+ค่าอื่นๆ เช่นจำนวนสถานีต่อหน้าและอายุ cache อยู่ใน [`src/config.js`](src/config.js)
+
+### PROXY_BASE
+
+หน้าเว็บที่เปิดผ่าน https เล่นสตรีม `http://` ตรงๆ ไม่ได้ (เบราว์เซอร์บล็อก mixed content) จึงต้องผ่าน stream proxy:
+
+- **มี proxy** (deploy ด้วย docker compose): ใช้ค่าเริ่มต้น `/stream/` — สถานี http เล่นผ่าน `/stream/<stationuuid>`
+- **proxy อยู่คนละโดเมน**: `VITE_PROXY_BASE=https://stream.example.com/stream/ npm run build`
+- **ไม่มี proxy** (เช่น GitHub Pages): `VITE_PROXY_BASE= npm run build` — การ์ดสถานี http จะแสดงแบบจางและบอกสาเหตุเมื่อกด ส่วนสถานี https และ HLS เล่นได้ตามปกติ
+
+ตอนเปิดผ่าน `http://` (เช่น `npm run dev`) ไม่มีปัญหา mixed content สถานี http จึงเล่นตรงจากสถานีได้เลย
+
+## Deploy
+
+### GitHub Pages (ไม่มี proxy)
+
+1. push repo ขึ้น GitHub ชื่อ `khlun-thai`
+2. Settings → Pages → Build and deployment → Source: **GitHub Actions**
+3. push ขึ้น branch `main` (หรือกด Run workflow ที่ Actions → Deploy to GitHub Pages)
+4. เว็บอยู่ที่ `https://<owner>.github.io/khlun-thai/`
+
+workflow [`.github/workflows/pages.yml`](.github/workflows/pages.yml) ตั้ง `BASE_PATH` และ `SITE_URL` ตามชื่อ repo ให้อัตโนมัติ และตั้ง `VITE_PROXY_BASE` เป็นค่าว่าง ถ้าเปลี่ยนชื่อ repo ไม่ต้องแก้อะไร
+
+ทุก push และ pull request จะรัน test และ build ผ่าน [`.github/workflows/ci.yml`](.github/workflows/ci.yml) (ทั้งหน้าเว็บและ proxy)
+
+### Docker (มี proxy)
+
+หน้าเว็บ + stream proxy บนเซิร์ฟเวอร์ของตัวเอง ดูวิธีรันในหัวข้อ [รันด้วย docker compose](#รันด้วย-docker-compose) ด้านล่าง
+ให้วาง reverse proxy ที่ทำ https (เช่น Caddy, Cloudflare Tunnel) ไว้หน้า port `8080` แล้ว build หน้าเว็บด้วย `SITE_URL=https://radio.example.com/`
 
 ## Stream proxy
 
@@ -40,13 +134,7 @@ proxy ใน [`server/`](server/) รับแค่ `stationuuid` แล้ว�
 
 ค่าผิดรูปแบบ proxy จะไม่ยอมเริ่มทำงานและบอกทุกตัวที่ผิด
 
-ค่าฝั่งหน้าเว็บ (ตั้งตอน `npm run build` / `npm run dev`):
-
-| ตัวแปร | ค่าเริ่มต้น | ความหมาย |
-|---|---|---|
-| `VITE_PROXY_BASE` | `/stream/` | path หรือ URL ของ proxy, ตั้งเป็นค่าว่างถ้าไม่มี proxy (เช่น GitHub Pages) — การ์ดสถานี http จะแสดงแบบจางบนหน้า https |
-| `VITE_PROXY_ALWAYS` | ไม่ตั้ง | `1` = ส่งสตรีม http ผ่าน proxy แม้หน้าเว็บเป็น http (ใช้ทดสอบตอน dev) |
-| `PROXY_TARGET` | `http://localhost:3000` | ปลายทางที่ `npm run dev` ส่ง `/stream` ต่อไปให้ |
+ค่าฝั่งหน้าเว็บ (`VITE_PROXY_BASE`, `VITE_PROXY_ALWAYS`, `PROXY_TARGET`) อยู่ในหัวข้อ [การตั้งค่า](#การตั้งค่า)
 
 ### รันบนเครื่องตัวเอง
 
@@ -113,3 +201,15 @@ docker compose -f deploy/docker-compose.yml up --build -d
 ### หมายเหตุลิขสิทธิ์
 
 proxy ส่งต่อสตรีมให้ผู้ใช้ที่กดฟังแต่ละคนเท่านั้น ไม่ได้อัด เก็บ หรือออกอากาศซ้ำ ลิขสิทธิ์เนื้อหาเป็นของแต่ละสถานี
+
+## เครดิต
+
+- ข้อมูลสถานีจาก [Radio Browser](https://www.radio-browser.info/) — ฐานข้อมูลสถานีวิทยุแบบเปิด ทุกครั้งที่กดเล่น หน้าเว็บเรียก `/json/url/{stationuuid}` เพื่อนับยอดคลิกให้สถานีตามที่ Radio Browser ขอ
+- ธงประเทศ: [flag-icons](https://github.com/lipis/flag-icons) (MIT)
+- เล่น HLS: [hls.js](https://github.com/video-dev/hls.js) (Apache-2.0)
+- ฟอนต์: Chakra Petch, IBM Plex Sans Thai, IBM Plex Mono จาก Google Fonts (SIL Open Font License)
+
+## ลิขสิทธิ์
+
+- โค้ดของโปรเจกต์นี้ใช้สัญญาอนุญาต [MIT](LICENSE)
+- เนื้อหาเสียง ชื่อ และโลโก้ของสถานีเป็นลิขสิทธิ์ของแต่ละสถานี โปรเจกต์นี้ลิงก์ไปยังสตรีมสาธารณะที่สถานีเผยแพร่เองเท่านั้น ไม่ได้เก็บ อัด หรือเผยแพร่เนื้อหาซ้ำ
