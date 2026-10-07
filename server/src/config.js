@@ -42,6 +42,13 @@ const trusted = (raw, name) => {
   return list;
 };
 
+// IP ที่ proxy ฟัง: 0.0.0.0 (ทุก interface — ใช้ใน Docker) หรือ 127.0.0.1 เมื่อมี nginx ในเครื่องเดียวกันอยู่หน้า
+const host = (raw, name) => {
+  const v = raw.trim();
+  if (!isIP(v)) throw new ConfigError(`${name} ต้องเป็น IP เช่น 127.0.0.1 หรือ 0.0.0.0 (ได้ "${raw}")`);
+  return v;
+};
+
 const text = (raw, name) => {
   if (!raw.trim() || /[\r\n]/.test(raw)) throw new ConfigError(`${name} ต้องไม่ว่างและไม่มีขึ้นบรรทัดใหม่`);
   return raw.trim();
@@ -50,6 +57,7 @@ const text = (raw, name) => {
 // ชื่อ env → [ชื่อใน config, ค่าเริ่มต้น, ตัวแปลง]
 const SCHEMA = {
   PORT: ['port', '3000', int(1, 65535)],
+  HOST: ['host', '0.0.0.0', host],
   ALLOWED_ORIGIN: ['allowedOrigin', 'http://localhost:5173', origin],
   TRUSTED_PROXY: ['trustedProxy', '127.0.0.1', trusted],
   MAX_STREAMS: ['maxStreams', '200', int(1, 100000)],

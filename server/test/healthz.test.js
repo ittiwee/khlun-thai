@@ -29,6 +29,7 @@ test('path อื่นตอบ 404 เป็น JSON ภาษาไทย', a
 test('config: ค่าเริ่มต้นตรงตาม PROXY.md', () => {
   assert.deepEqual(loadConfig({}), {
     port: 3000,
+    host: '0.0.0.0',
     allowedOrigin: 'http://localhost:5173',
     trustedProxy: ['127.0.0.1'],
     maxStreams: 200,
@@ -48,6 +49,8 @@ test('config: อ่านค่าจาก env', () => {
   assert.equal(c.allowedOrigin, 'https://radio.example.com');
   assert.deepEqual(c.trustedProxy, ['127.0.0.1', '172.16.0.0/12']);
   assert.equal(c.maxStreamsPerIp, 5);
+  assert.equal(loadConfig({ HOST: '127.0.0.1' }).host, '127.0.0.1');
+  assert.equal(loadConfig({ HOST: '::1' }).host, '::1');
 });
 
 test('config: ค่าผิดต้อง error พร้อมบอกทุกตัวที่ผิด', () => {
@@ -61,4 +64,5 @@ test('config: ค่าผิดต้อง error พร้อมบอกท�
   );
   assert.throws(() => loadConfig({ TRUSTED_PROXY: '10.0.0.0/40' }), ConfigError);
   assert.throws(() => loadConfig({ ALLOWED_ORIGIN: 'ftp://x.com' }), ConfigError);
+  assert.throws(() => loadConfig({ HOST: 'localhost' }), ConfigError);
 });

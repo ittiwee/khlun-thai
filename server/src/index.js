@@ -95,7 +95,7 @@ async function main() {
   process.on('SIGINT', shutdown);
 
   try {
-    await app.listen({ port: config.port, host: '0.0.0.0' });
+    await app.listen({ port: config.port, host: config.host });
   } catch (err) {
     app.log.error({ error: { message: err.message, code: err.code } }, err.code === 'EADDRINUSE' ? `port ${config.port} ถูกใช้อยู่แล้ว — ตั้ง PORT เป็นค่าอื่น` : 'listen failed');
     process.exit(1);
