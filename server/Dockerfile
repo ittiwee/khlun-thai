@@ -1,5 +1,5 @@
 # Stream proxy ของคลื่นไทย — build: docker build -t khlun-thai-proxy server/
-# Node 20 หมดระยะ LTS แล้ว (เม.ย. 2026) จึงใช้ 24 LTS เป็นค่าเริ่มต้น เปลี่ยนได้ด้วย --build-arg NODE_VERSION=22
+# ใช้ Node 24 LTS (docs/PROXY.md ข้อ 8) เปลี่ยนได้ด้วย --build-arg NODE_VERSION=22
 ARG NODE_VERSION=24
 
 FROM node:${NODE_VERSION}-alpine AS deps

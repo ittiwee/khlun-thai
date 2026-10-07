@@ -21,7 +21,7 @@
 
 | เรื่อง | กำหนด |
 |---|---|
-| Runtime | Node.js 20 LTS ขึ้นไป |
+| Runtime | Node.js 24 LTS (โค้ดรันได้ตั้งแต่ 20 ขึ้นไป) |
 | Framework | Fastify |
 | HTTP client | โมดูลในตัวของ Node (`http`, `https`, `net`, `tls`, `dns`) ใช้ `undici` เท่าที่จำเป็น |
 | Log | pino (มากับ Fastify) แบบ JSON |
@@ -175,7 +175,7 @@ deploy/
 ## 8. Deploy
 
 ### server/Dockerfile
-- multi-stage บน `node:20-alpine`
+- multi-stage บน `node:24-alpine` (Node 20 หมดระยะ LTS เม.ย. 2026; เปลี่ยนได้ด้วย `--build-arg NODE_VERSION`)
 - ติดตั้งเฉพาะ production dependencies (`npm ci --omit=dev`)
 - รันด้วยผู้ใช้ `node` (ไม่ใช่ root)
 - `HEALTHCHECK` เรียก `http://127.0.0.1:3000/healthz`
