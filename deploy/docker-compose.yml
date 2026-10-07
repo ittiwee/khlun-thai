@@ -14,9 +14,6 @@ services:
     depends_on:
       proxy:
         condition: service_healthy
-    networks:
-      app:
-        ipv4_address: 172.30.0.10
 
   proxy:
     build: ../server
@@ -25,18 +22,11 @@ services:
       - path: ../server/.env
         required: false
     environment:
-      # Nginx (web) มี IP คงที่ใน network นี้ — เชื่อ X-Forwarded-For จากมันเท่านั้น
-      # ตั้งตรงนี้เพราะผูกกับโครง network ของ compose ไม่ใช่ค่าที่ผู้ดูแลควรแก้ใน .env
-      TRUSTED_PROXY: 172.30.0.10
+      # เชื่อ X-Forwarded-For จาก nginx ใน docker network นี้ (ช่วง private ที่ Docker ใช้แจก IP)
+      # ปลอดภัยเพราะ proxy ไม่เปิด port ออกนอก — ต่อเข้ามาได้เฉพาะ container ใน network เดียวกัน
+      # ไม่ fix subnet เพื่อไม่ชนกับ network อื่นบนเครื่อง และรันหลาย stack พร้อมกันได้
+      TRUSTED_PROXY: 10.0.0.0/8,172.16.0.0/12,192.168.0.0/16
       PORT: "3000"
     # ไม่มี ports: — proxy ไม่เปิดออกนอก คุยกับ web ผ่าน network ภายในเท่านั้น
     expose:
       - "3000"
-    networks:
-      - app
-
-networks:
-  app:
-    ipam:
-      config:
-        - subnet: 172.30.0.0/24
