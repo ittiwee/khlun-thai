@@ -33,6 +33,8 @@ function siteMeta(siteUrl) {
 }
 
 export default defineConfig({
+  // path ที่เว็บอยู่ เช่น GitHub Pages ของ repo khlun-thai = BASE_PATH=/khlun-thai/
+  base: process.env.BASE_PATH || '/',
   plugins: [siteMeta(process.env.SITE_URL)],
   server: {
     // npm run dev: ส่ง /stream ต่อให้ stream proxy (server/) — เปลี่ยนปลายทางได้ด้วย PROXY_TARGET
