@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>คลื่นไทย</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: tuner faceplate (FM dial 87.5–108) on top, station grid below, transport bar pinned to the bottom */
+:root {
+  --bg: #e9ece6;
+  --panel: #f6f7f3;
+  --face: #f3ecd6;
+  --face-ink: #4a3f22;
+  --ink: #1b221e;
+  --muted: #5c6760;
+  --line: #cfd5cc;
+  --needle: #c8401f;
+  --lamp: #e39a2c;
+  --chip: #dde2d9;
+  --warn: #9a5a00;
+  --font-display: "Chakra Petch", "Sukhumvit Set", "Tahoma", sans-serif;
+  --font-body: "IBM Plex Sans Thai", "Sukhumvit Set", "Leelawadee UI", "Tahoma", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --radius: 10px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #121714; --panel: #1a211d; --face: #0d110f; --face-ink: #e9b25a; --ink: #e4ebe6; --muted: #93a099;
+    --line: #2c3631; --needle: #ff6a43; --lamp: #f2ae45; --chip: #242d28; --warn: #f0b45c; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #121714; --panel: #1a211d; --face: #0d110f; --face-ink: #e9b25a; --ink: #e4ebe6; --muted: #93a099;
+  --line: #2c3631; --needle: #ff6a43; --lamp: #f2ae45; --chip: #242d28; --warn: #f0b45c; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--bg); color: var(--ink);
+  font: 15px/1.55 var(--font-body);
+  padding-inline: 16px;
+  padding-block: 0 140px;
+}
+.wrap { max-width: 1100px; margin: 0 auto; display: grid; gap: 22px; }
+header.top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding-top: 22px; }
+h1 { font: 700 clamp(28px, 5vw, 40px)/1.05 var(--font-display); letter-spacing: .01em; margin: 0; text-wrap: balance; }
+h1 small { display: block; font: 500 13px/1.4 var(--font-body); color: var(--muted); letter-spacing: 0; margin-top: 6px; }
+.count { font: 500 13px var(--font-mono); color: var(--muted); }
+
+/* tuner */
+.tuner {
+  background: var(--face); color: var(--face-ink);
+  border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 18px 18px 14px; position: relative; overflow: hidden;
+}
+.tuner-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; font: 600 12px var(--font-display); letter-spacing: .14em; text-transform: uppercase; }
+.lamp { display: inline-flex; align-items: center; gap: 8px; }
+.lamp i { width: 9px; height: 9px; border-radius: 50%; background: var(--line); transition: background .3s, box-shadow .3s; }
+.on .lamp i { background: var(--lamp); box-shadow: 0 0 10px var(--lamp); }
+.readout { font: 500 clamp(30px, 7vw, 48px)/1 var(--font-mono); font-variant-numeric: tabular-nums; margin: 10px 0 2px; }
+.readout span { font-size: .4em; margin-left: 6px; }
+.dial { position: relative; height: 58px; margin-top: 12px; }
+.scale { position: absolute; inset: 0 0 20px 0; border-bottom: 1px solid currentColor; }
+.tick { position: absolute; bottom: 0; width: 1px; background: currentColor; opacity: .55; }
+.tick.major { height: 14px; opacity: .9; }
+.tick.minor { height: 6px; }
+.num { position: absolute; bottom: -20px; transform: translateX(-50%); font: 500 11px var(--font-mono); }
+.mark {
+  position: absolute; bottom: 18px; width: 9px; height: 9px; margin-left: -4.5px; border-radius: 50%;
+  border: 0; padding: 0; background: currentColor; opacity: .45; cursor: pointer;
+}
+.mark:hover, .mark:focus-visible { opacity: 1; outline: 2px solid var(--needle); outline-offset: 2px; }
+.needle { position: absolute; top: -6px; bottom: 14px; width: 2px; margin-left: -1px; background: var(--needle); transition: left .6s cubic-bezier(.3,.7,.2,1); }
+.needle::after { content: ""; position: absolute; top: -4px; left: -4px; width: 10px; height: 10px; border-radius: 50%; background: var(--needle); }
+@media (prefers-reduced-motion: reduce) { .needle { transition: none; } }
+
+/* controls */
+.controls { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.search { flex: 1 1 240px; min-width: 0; position: relative; }
+.search input {
+  width: 100%; font: 15px var(--font-body); color: var(--ink); background: var(--panel);
+  border: 1px solid var(--line); border-radius: 999px; padding: 10px 16px;
+}
+.search input:focus-visible { outline: 2px solid var(--needle); outline-offset: 1px; }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip {
+  font: 500 13px var(--font-body); color: var(--ink); background: var(--chip); border: 1px solid transparent;
+  border-radius: 999px; padding: 7px 14px; cursor: pointer;
+}
+.chip[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+.chip:focus-visible { outline: 2px solid var(--needle); outline-offset: 2px; }
+
+/* grid */
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
+.st {
+  display: grid; grid-template-columns: 64px 1fr auto; gap: 10px; align-items: center;
+  background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 12px; text-align: left; color: inherit; font: inherit; cursor: pointer; min-width: 0;
+}
+.st:hover { border-color: var(--muted); }
+.st:focus-visible { outline: 2px solid var(--needle); outline-offset: 2px; }
+.st.playing { border-color: var(--needle); box-shadow: inset 3px 0 0 var(--needle); }
+.fq { font: 500 17px/1 var(--font-mono); font-variant-numeric: tabular-nums; }
+.fq small { display: block; font-size: 10px; color: var(--muted); margin-top: 4px; letter-spacing: .08em; }
+.meta { min-width: 0; }
+.nm { font-weight: 600; line-height: 1.3; overflow-wrap: anywhere; }
+.sub { font: 12px var(--font-mono); color: var(--muted); display: flex; gap: 8px; flex-wrap: wrap; margin-top: 3px; }
+.sub .http { color: var(--warn); }
+.fav { background: none; border: 0; padding: 6px; cursor: pointer; color: var(--muted); font-size: 18px; line-height: 1; border-radius: 6px; }
+.fav[aria-pressed="true"] { color: var(--lamp); }
+.fav:focus-visible { outline: 2px solid var(--needle); }
+.empty { color: var(--muted); padding: 24px 0; }
+
+/* transport */
+.bar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 5;
+  background: var(--panel); border-top: 1px solid var(--line);
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+}
+.bar-in { max-width: 1100px; margin: 0 auto; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.btns { display: flex; gap: 6px; align-items: center; }
+.btn {
+  width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--line); background: var(--bg); color: var(--ink);
+  display: grid; place-items: center; cursor: pointer;
+}
+.btn.play { width: 52px; height: 52px; background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.btn:focus-visible { outline: 2px solid var(--needle); outline-offset: 2px; }
+.btn svg { width: 18px; height: 18px; fill: currentColor; }
+.now { flex: 1 1 200px; min-width: 0; }
+.now b { display: block; font: 600 16px/1.3 var(--font-display); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.status { font: 12px var(--font-mono); color: var(--muted); }
+.status.err { color: var(--warn); }
+.eq { display: inline-flex; gap: 2px; align-items: flex-end; height: 12px; margin-right: 6px; vertical-align: -1px; }
+.eq i { width: 3px; background: var(--needle); height: 3px; }
+.on .eq i { animation: eq 0.9s ease-in-out infinite; }
+.eq i:nth-child(2) { animation-delay: .2s; } .eq i:nth-child(3) { animation-delay: .4s; }
+@keyframes eq { 0%,100% { height: 3px } 50% { height: 12px } }
+@media (prefers-reduced-motion: reduce) { .on .eq i { animation: none; height: 8px; } }
+.vol { display: flex; align-items: center; gap: 8px; flex: 0 1 180px; min-width: 120px; }
+.vol input { width: 100%; accent-color: var(--needle); }
+.home { font: 12px var(--font-mono); color: var(--muted); }
+.home:hover { color: var(--ink); }
+@media (max-width: 560px) {
+  .vol { order: 3; flex-basis: 100%; }
+  .home { display: none; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>คลื่นไทย<small>วิทยุออนไลน์จากทั่วประเทศ เลือกสถานีแล้วกดฟังได้เลย</small></h1>
+    <div class="count" id="count"></div>
+  </header>
+
+  <section class="tuner" id="tuner" aria-label="หน้าปัดคลื่น FM">
+    <div class="tuner-head"><span>FM · MHz</span><span class="lamp"><i></i><span id="lampText">STANDBY</span></span></div>
+    <div class="readout" id="readout">—<span>MHz</span></div>
+    <div class="dial" id="dial"><div class="scale" id="scale"></div><div class="needle" id="needle" style="left:0%"></div></div>
+  </section>
+
+  <div class="controls">
+    <div class="search"><input id="q" type="search" placeholder="ค้นหาชื่อสถานี หรือความถี่ เช่น 93" aria-label="ค้นหาสถานี"></div>
+    <div class="chips" id="chips" role="group" aria-label="หมวด"></div>
+  </div>
+
+  <div class="grid" id="grid"></div>
+</div>
+
+<div class="bar" id="bar">
+  <div class="bar-in">
+    <div class="btns">
+      <button class="btn" id="prev" aria-label="สถานีก่อนหน้า"><svg viewBox="0 0 24 24"><path d="M6 5h2v14H6zM20 5v14L9 12z"/></svg></button>
+      <button class="btn play" id="play" aria-label="เล่น"><svg viewBox="0 0 24 24" id="playIcon"><path d="M7 4v16l13-8z"/></svg></button>
+      <button class="btn" id="next" aria-label="สถานีถัดไป"><svg viewBox="0 0 24 24"><path d="M16 5h2v14h-2zM4 5v14l11-7z"/></svg></button>
+    </div>
+    <div class="now">
+      <b id="nowName">เลือกสถานีเพื่อเริ่มฟัง</b>
+      <div class="status" id="status"><span class="eq"><i></i><i></i><i></i></span><span id="statusText">พร้อม</span></div>
+    </div>
+    <div class="vol"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M4 9v6h4l5 5V4L8 9z"/></svg><input id="vol" type="range" min="0" max="1" step="0.01" value="0.8" aria-label="ระดับเสียง"></div>
+    <a class="home" id="home" href="#" target="_blank" rel="noopener" hidden>เว็บสถานี ↗</a>
+  </div>
+</div>
+
+<audio id="audio" preload="none"></audio>
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.13/dist/hls.min.js"></script>
+<script>
+const STATIONS = [{"n": "FM 88 radio Thailand: English language service", "c": "MP3", "b": 128, "u": "https://cdn-th2.login.in.th/shoutcast/8420", "h": "https://prdee.prd.go.th/radio", "t": "news", "f": 88.0, "s": true, "k": "direct"}, {"n": "88.5 MHz. Voice of Navy", "c": "MP3", "b": 128, "u": "http://rcp.plathong.net:7346/;?type=http&nocache=283", "h": "https://www.voiceofnavy.com/", "t": "news", "f": 88.5, "s": false, "k": "direct"}, {"n": "Best Radio FM. 89.0 MHz.", "c": "AAC+", "b": 52, "u": "https://80sv2.hostpleng.com/?url=http://112.121.150.133:8198/;", "h": "https://bestradio89.com/", "t": "music", "f": 89.0, "s": true, "k": "direct"}, {"n": "Phuket LIVE 89.5", "c": "AAC+", "b": 48, "u": "https://4118.radio4.thzhost.com/", "h": "https://www.thephuketnews.com/", "t": "music", "f": 89.5, "s": true, "k": "direct"}, {"n": "89.75 Radio Trip", "c": "MP3", "b": 80, "u": "http://media.login.in.th:1150/", "h": "http://www.radiotripphuket.com/", "t": "music", "f": 89.75, "s": false, "k": "direct"}, {"n": "90 rakthai", "c": "MP3", "b": 96, "u": "http://radio11.plathong.net:8896/;stream.mp3", "h": "http://radio11.plathong.net:8896/;stream.mp3", "t": "looktung", "f": 90.0, "s": false, "k": "direct"}, {"n": "City Radio Pattaya", "c": "MP3", "b": 320, "u": "https://media.onair.one:8200/stream/1/?v=1769497160087", "h": "https://www.cityradiopattaya.com/", "t": "music", "f": 90.25, "s": true, "k": "direct"}, {"n": "Talay 90.25 FM", "c": "AAC+", "b": 96, "u": "https://stream.talay.asia/talay", "h": "https://www.facebook.com/Talay90.25/", "t": "music", "f": 90.25, "s": true, "k": "direct"}, {"n": "90.5 Delight", "c": "MP3", "b": 128, "u": "https://cdn-th2.livestreaming.in.th/shoutcast/8895", "h": "https://www.studiolinemedia1.com/", "t": "music", "f": 90.5, "s": true, "k": "direct"}, {"n": "90.5 Smart News มิติข่าว", "c": "MP3", "b": 0, "u": "http://live3.smartbomb.co.th:8624/;stream.mp3", "h": "http://www.smartbomb.co.th/", "t": "news", "f": 90.5, "s": false, "k": "direct"}, {"n": "FM 91", "c": "MP3", "b": 320, "u": "https://www.fm91bkk.com:8900/;stream.mp3", "h": "https://www.fm91bkk.com/", "t": "news", "f": 91.0, "s": true, "k": "direct"}, {"n": "91.5 FM Panzer Radio Station", "c": "MP3", "b": 192, "u": "http://radio.servradio.com:9398/;stream.mp3", "h": "https://thaidio.blogspot.com/2015/01/915-cool-fm.html", "t": "music", "f": 91.5, "s": false, "k": "direct"}, {"n": "Mcot Radio Buriram 92.0 FM", "c": "MP3", "b": 185, "u": "http://rstream.mcot.net:9050/", "h": "https://radio.mcot.net/", "t": "music", "f": 92.0, "s": false, "k": "direct"}, {"n": "FM 92.5 radio Thailand", "c": "MP3", "b": 128, "u": "https://cdn-th2.login.in.th/shoutcast/8425", "h": "https://prdee.prd.go.th/radio", "t": "news", "f": 92.5, "s": true, "k": "direct"}, {"n": "สถานีวิทยุกระจายเสียงแห่งประเทศไทย (FM 92.5 MHz)", "c": "AAC", "b": 128, "u": "https://cdn-edge.iiptvcdn.com/radio_edge/45d4-d521-cbfc-d686-0123/playlist.m3u8", "h": "https://nbtplus.prd.go.th/radio", "t": "news", "f": 92.5, "s": true, "k": "hls"}, {"n": "COOLfahrenheit", "c": "MP3", "b": 128, "u": "https://coolism-web.cdn.byteark.com/;stream/1", "h": "http://www.coolism.net/index.php", "t": "music", "f": 93.0, "s": true, "k": "direct"}, {"n": "93.5 Mhz. radio Thailand", "c": "MP3", "b": 128, "u": "https://cdn-th2.login.in.th/shoutcast/8430", "h": "https://radiothailand.prd.go.th/radiothailand", "t": "news", "f": 93.5, "s": true, "k": "direct"}, {"n": "93.5 Top Radio FM", "c": "MP3", "b": 96, "u": "https://a10.asurahosting.com:8250/radio.mp3", "h": "https://www.radio-thai.com/935-top-radio-fm", "t": "music", "f": 93.5, "s": true, "k": "direct"}, {"n": "94 Bangkok Smile", "c": "MP3", "b": 128, "u": "http://fm94.tv5.co.th:8000/fm94ch3", "h": "https://fm94.tv5.co.th/", "t": "music", "f": 94.0, "s": false, "k": "direct"}, {"n": "95.5 Metro life", "c": "MP3", "b": 128, "u": "https://cdn-th2.login.in.th/shoutcast/8435", "h": "https://prdee.prd.go.th/radio", "t": "music", "f": 95.5, "s": true, "k": "direct"}, {"n": "FM 96 MHz. Zaab news radio", "c": "MP3", "b": 128, "u": "https://sapircast.caster.fm:17039/aRsGW", "h": "https://www.zaabnews.com/", "t": "news", "f": 96.0, "s": true, "k": "direct"}, {"n": "ThaiRadio 96.5 thinking", "c": "HLS", "b": 0, "u": "https://live-org-01-cdn.mcot.net/radiocdn_edge/fm965.stream_aac/chunklist.m3u8", "h": "https://www.mcot.net/", "t": "news", "f": 96.5, "s": true, "k": "hls"}, {"n": "Bluewave 97 (CR)", "c": "MP3", "b": 128, "u": "http://112.121.151.133:8109/live", "h": "https://www.bluewave97.com/", "t": "music", "f": 97.0, "s": false, "k": "direct"}, {"n": "QFM 97", "c": "MP3", "b": 128, "u": "https://cdn-th2.livestreaming.in.th/shoutcast/8610", "h": "https://www.google.com/url?sa=t&source=web&rct=j&opi=89978449&url=https://radiothailand.prd.go.th", "t": "news", "f": 97.0, "s": true, "k": "direct"}, {"n": "Isan FM 98", "c": "MP3", "b": 96, "u": "http://radio11.plathong.net:8900/stream.mp3", "h": "http://www.isanfm.com/", "t": "looktung", "f": 98.0, "s": false, "k": "direct"}, {"n": "FM 99 Active", "c": "HLS", "b": 0, "u": "https://play-fm99.mcot.net/fm99/fm99.m3u8", "h": "", "t": "music", "f": 99.0, "s": true, "k": "hls"}, {"n": "JS100 จส.100", "c": "MP3", "b": 128, "u": "http://103.246.19.203:8004/stream", "h": "https://www.js100.com/en/site/home", "t": "news", "f": 100.0, "s": false, "k": "direct"}, {"n": "MCOT Loei FM 100.00", "c": "AAC", "b": 128, "u": "https://lb-media.mcot.net/RegionRadio/Loei.stream_aac/playlist.m3u8", "h": "https://radio.mcot.net/", "t": "music", "f": 100.0, "s": true, "k": "hls"}, {"n": "FM 100.5 MHz MCOT news network", "c": "HLS", "b": 0, "u": "https://play-fm1005.mcot.net/fm1005/fm1005.m3u8", "h": "https://news1005.mcot.net/news1005/th", "t": "news", "f": 100.5, "s": true, "k": "hls"}, {"n": "MCOT 100.5", "c": "HLS", "b": 2000, "u": "https://lcdn.mcot.net/RadioLive/smil:fm1005_live.smil/playlist.m3u8", "h": "https://news1005.mcot.net/", "t": "news", "f": 100.5, "s": true, "k": "hls"}, {"n": "101 kiss fm สุราษฎร์ธานี", "c": "MP3", "b": 128, "u": "http://siamtoday.in.th/8498", "h": "https://siamtoday.in.th/station.php?code=6804", "t": "music", "f": 101.0, "s": false, "k": "direct"}, {"n": "101.5 Chula Radio", "c": "MP3", "b": 128, "u": "http://radio11.plathong.net:7590/;stream.mp3", "h": "https://curadio.chula.ac.th/Radio-Live.php", "t": "music", "f": 101.5, "s": false, "k": "direct"}, {"n": "Chula Radio Plus", "c": "AAC", "b": 913, "u": "https://media.curadio.chula.ac.th/live/liveradio128/playlist.m3u8", "h": "https://curadio.chula.ac.th/index.php", "t": "music", "f": 101.5, "s": true, "k": "hls"}, {"n": "Surf Radio", "c": "AAC+", "b": 96, "u": "https://stream.surf.radio/surf1025", "h": "https://surf.radio/", "t": "music", "f": 102.5, "s": true, "k": "direct"}, {"n": "Radio Red Phuket", "c": "MP3", "b": 256, "u": "https://stream.chiliradio.app/radiored", "h": "https://radioredphuket.com/", "t": "music", "f": 102.75, "s": true, "k": "direct"}, {"n": "Fabulous 103", "c": "MP3", "b": 0, "u": "https://fabulous.thailandstreaming.net/fabulous.mp3", "h": "https://alwayspattaya.com/", "t": "music", "f": 103.0, "s": true, "k": "direct"}, {"n": "FM 103 MHz คนลูกทุ่ง", "c": "MP3", "b": 128, "u": "http://fm94.tv5.co.th:8000/armystream", "h": "https://xn--12cfk7di6e1gf2l.com/", "t": "looktung", "f": 103.0, "s": false, "k": "direct"}, {"n": "Vybe 103.5", "c": "AAC+", "b": 320, "u": "https://radio14.plathong.net/7154/;stream.mp3", "h": "https://vybethailand.com/", "t": "music", "f": 103.5, "s": true, "k": "direct"}, {"n": "VYBE 103.5 ลำปาง", "c": "AAC+", "b": 320, "u": "https://radio9.plathong.net/7076", "h": "https://vybethailand.com/", "t": "music", "f": 103.5, "s": true, "k": "direct"}, {"n": "Flex 104.5", "c": "HLS", "b": 0, "u": "https://streaming.flexconnect.net/voiceflex/voiceflex/playlist.m3u8", "h": "https://www.flexconnect.net/", "t": "music", "f": 104.5, "s": true, "k": "hls"}, {"n": "MCOT Chumphon (Amphoe Lang Suan) FM 104.75", "c": "AAC", "b": 128, "u": "https://lb-media.mcot.net/RegionRadio/ChumphonLangsuan.stream_aac/playlist.m3u8", "h": "https://radio.mcot.net/", "t": "music", "f": 104.75, "s": true, "k": "hls"}, {"n": "Sunshine Radio Pattaya", "c": "MP3", "b": 128, "u": "https://cdn-th2.login.in.th/shoutcast/8030", "h": "https://www.sunshinefm.com/", "t": "music", "f": 104.75, "s": true, "k": "direct"}, {"n": "Smooth 105.5 (RStream)", "c": "MP3", "b": 185, "u": "http://rstream.mcot.net:8000/fm1055", "h": "https://smoothfm.mcot.net/", "t": "music", "f": 105.5, "s": false, "k": "direct"}, {"n": "106 Family News Radio", "c": "MP3", "b": 320, "u": "https://radio11.plathong.net/7138/;stream.mp3", "h": "https://onair.one/?page_id=405", "t": "news", "f": 106.0, "s": true, "k": "direct"}, {"n": "106 Yes radio", "c": "AAC+", "b": 128, "u": "https://4096.radio2.thzhost.com/;stream", "h": "https://www.niyamedia.com/", "t": "music", "f": 106.0, "s": true, "k": "direct"}, {"n": "Yesterday 106.5", "c": "AAC+", "b": 128, "u": "http://radio4.thzhost.com:4122/", "h": "http://www.niyamedia.com/", "t": "music", "f": 106.5, "s": false, "k": "direct"}, {"n": "Abdulbasit Abdulsamad", "c": "AAC", "b": 64, "u": "https://radio.mp3islam.com/listen/abdulbasit/radio.mp3", "h": "https://mp3islam.com/", "t": "faith", "f": null, "s": true, "k": "direct"}, {"n": "Banmai Radio", "c": "MP3", "b": 185, "u": "https://radio10.plathong.net/7590/;stream.mp3?type=http", "h": "https://radio10.plathong.net/7590/;stream.mp3?type=http", "t": "music", "f": null, "s": true, "k": "direct"}, {"n": "BEATs FM", "c": "AAC+", "b": 128, "u": "https://radio14.plathong.net/7208/;stream.mp3", "h": "https://radio14.plathong.net/7208/;stream.mp3", "t": "music", "f": null, "s": true, "k": "direct"}, {"n": "BKK.FM", "c": "AAC", "b": 64, "u": "https://rsas.bkk.fm/radio", "h": "https://bkk.fm/", "t": "music", "f": null, "s": true, "k": "direct"}, {"n": "Chili Radio Thailand", "c": "MP3", "b": 256, "u": "https://stream.chiliradio.app/chiliclassics", "h": "https://chiliradio.asia/", "t": "music", "f": null, "s": true, "k": "direct"}, {"n": "GOLD Radio", "c": "MP3", "b": 320, "u": "https://streaming.live365.com/a94344", "h": "https://live365.com/station/GOLD-Radio-a94344", "t": "music", "f": null, "s": true, "k": "direct"}, {"n": "Keangun Radio เขียนกันเรดิโอ", "c": "MP3", "b": 128, "u": "https://radio9.plathong.net/7054/;stream.mp3", "h": "https://www.keangun.com/", "t": "music", "f": null, "s": true, "k": "direct"}, {"n": "KRB Radio 1", "c": "MP3", "b": 128, "u": "https://radio1.ohmi-design.com/8086/;", "h": "https://www.nmab.or.th/radio", "t": "music", "f": null, "s": true, "k": "direct"}, {"n": "KRB Radio 2", "c": "MP3", "b": 320, "u": "https://nontawat3664.i234.me:8443/stream", "h": "https://www.nmab.or.th/radio", "t": "music", "f": null, "s": true, "k": "direct"}, {"n": "KRB Radio 3", "c": "MP3", "b": 128, "u": "https://pakeefm.org/stream/300006/", "h": "https://www.nmab.or.th/radio", "t": "music", "f": null, "s": true, "k": "direct"}, {"n": "Looktung Eingdoi", "c": "MP3", "b": 320, "u": "https://inter.lannaradio.com/radio/8000/radio.mp3", "h": "https://www.eingdoi.com/looktung", "t": "looktung", "f": null, "s": true, "k": "direct"}, {"n": "MCOT อุดรธานี", "c": "MP3", "b": 185, "u": "http://rstream.mcot.net:9044/;.mp3", "h": "https://radio.mcot.net/", "t": "music", "f": null, "s": false, "k": "direct"}, {"n": "Mommaemradio", "c": "MP3", "b": 128, "u": "http://112.121.150.133:9386/autodj", "h": "https://www.mommaem.com/", "t": "music", "f": null, "s": false, "k": "direct"}, {"n": "Rad Radio", "c": "MP3", "b": 128, "u": "http://radio1.serverradio.net:8592/;?type=http", "h": "https://mytuner-radio.com/radio/rad-radio-895-483972/", "t": "music", "f": null, "s": false, "k": "direct"}, {"n": "Radio Samui", "c": "AAC", "b": 128, "u": "https://stream.mixadance.fm/radiosamui", "h": "https://radiosamui.online/", "t": "music", "f": null, "s": true, "k": "direct"}, {"n": "RequestRadio Inter (Alt)", "c": "MP3", "b": 0, "u": "https://ozone2.javmemory.com/Inter.mp3", "h": "https://requestradio.in.th/inter/", "t": "music", "f": null, "s": true, "k": "direct"}, {"n": "RequestRadio String (Alt)", "c": "MP3", "b": 0, "u": "https://ozone2.javmemory.com/Music.mp3", "h": "https://requestradio.in.th/", "t": "music", "f": null, "s": true, "k": "direct"}, {"n": "RequestRadio ลูกทุ่ง (Alt)", "c": "MP3", "b": 0, "u": "https://ozone2.javmemory.com/Looktung.mp3", "h": "https://requestradio.in.th/looktung/", "t": "looktung", "f": null, "s": true, "k": "direct"}, {"n": "RequestRadio เพื่อชีวิต (Alt)", "c": "MP3", "b": 0, "u": "https://ozone2.javmemory.com/Forlife.mp3", "h": "https://requestradio.in.th/forlife/", "t": "music", "f": null, "s": true, "k": "direct"}, {"n": "บ้านธัมมะ", "c": "MP3", "b": 64, "u": "https://radio10.plathong.net/7238/;stream.mp3", "h": "https://www.dhammahome.com/radio/direct", "t": "faith", "f": null, "s": true, "k": "direct"}, {"n": "ลูกทุ่งเน็ตเวิร์ค", "c": "MP3", "b": 320, "u": "http://media.login.in.th:8200/;stream.mp3", "h": "http://looktung.net/", "t": "looktung", "f": null, "s": false, "k": "direct"}, {"n": "ลูกทุ่งแม็กซาโก้", "c": "MP3", "b": 320, "u": "https://thainetradio.com:8014/", "h": "https://thainetradio.com:8014/", "t": "looktung", "f": null, "s": true, "k": "direct"}, {"n": "วพท. am 792KHZ กรุงเทพฯ", "c": "MP3", "b": 96, "u": "https://radio9.plathong.net/7162/;", "h": "http://www.radio792.org/", "t": "news", "f": null, "s": true, "k": "direct"}, {"n": "วัดปากบ่อ", "c": "MP3", "b": 64, "u": "http://radio1.siamlivehost.com:8001/;", "h": "http://www.watpakbo.com/", "t": "faith", "f": null, "s": false, "k": "direct"}, {"n": "วัดป่าไทรงาม", "c": "MP3", "b": 128, "u": "https://radio10.plathong.net/7110/;stream.mp3", "h": "http://www.watpasaingam.com/", "t": "faith", "f": null, "s": true, "k": "direct"}, {"n": "วิทยุวัดนายโรง", "c": "MP3", "b": 64, "u": "http://103.7.56.219:4106/", "h": "https://watnairong.com/", "t": "music", "f": null, "s": false, "k": "direct"}, {"n": "วิทยุเสียงอิสลาม", "c": "MP3", "b": 192, "u": "https://radio12.plathong.net/7234/;stream.mp3", "h": "https://muslim.fm/", "t": "faith", "f": null, "s": true, "k": "direct"}, {"n": "สถานีวิทยุกระจายเสียงแห่งประเทศไทย (AM 891 KHz)", "c": "AAC", "b": 128, "u": "https://cdn-edge.iiptvcdn.com/radio_edge/51dd-90a9-c6ae-c7f7-49d4/playlist.m3u8", "h": "https://nbtplus.prd.go.th/radio", "t": "news", "f": null, "s": true, "k": "hls"}, {"n": "สถานีวิทยุจังหวัดทหารบกลพบุรี AM 1197 KHz. Stereo", "c": "AAC", "b": 128, "u": "https://mdr13.ddns.net/radio/am1197", "h": "https://mdr13.ddns.net/", "t": "news", "f": null, "s": true, "k": "direct"}, {"n": "สวพ.91 (สำรอง)", "c": "MP3", "b": 320, "u": "http://122.155.16.48:8955/;stream.mp3", "h": "http://fm91bkk.com/", "t": "news", "f": null, "s": false, "k": "direct"}, {"n": "สังฆทานธรรม", "c": "MP3", "b": 40, "u": "https://cdn-th2.livestreaming.in.th/shoutcast/8615", "h": "https://www.watsanghathan.com/content/5406/%E0%B8%AA%E0%B8%96%E0%B8%B2%E0%B8%99%E0%B8%B5%E0%B8%A7%E0%B8%B4%E0%B8%97%E0%B8%A2%E0%B8%B8%E0%B8%AA%E0%B8%B1%E0%B8%87%E0%B8%86%E0%B8%97%E0%B8%B2%E0%B8%99%E0%", "t": "faith", "f": null, "s": true, "k": "direct"}];
+const TAGS = [["all","ทั้งหมด"],["fav","★ โปรด"],["music","เพลง"],["news","ข่าว/สาระ"],["looktung","ลูกทุ่ง"],["faith","ธรรมะ/ศาสนา"]];
+const TAGNAME = Object.fromEntries(TAGS);
+const MIN = 87.5, MAX = 108;
+const $ = id => document.getElementById(id);
+const audio = $("audio");
+let hls = null, current = -1, filter = "all", query = "", visible = [];
+
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
+};
+let favs = new Set(store.get("kt-favs", []));
+audio.volume = store.get("kt-vol", 0.8); $("vol").value = audio.volume;
+
+const pct = f => ((f - MIN) / (MAX - MIN)) * 100;
+const fmt = f => f == null ? null : (Number.isInteger(f) ? f.toFixed(1) : String(f));
+
+function buildDial() {
+  const scale = $("scale");
+  for (let f = 88; f <= 108; f += 0.5) {
+    const t = document.createElement("div");
+    const major = f % 2 === 0;
+    t.className = "tick " + (major ? "major" : "minor");
+    t.style.left = pct(f) + "%";
+    scale.appendChild(t);
+    if (major) {
+      const n = document.createElement("div");
+      n.className = "num"; n.textContent = f; n.style.left = pct(f) + "%";
+      scale.appendChild(n);
+    }
+  }
+  STATIONS.forEach((s, i) => {
+    if (s.f == null) return;
+    const m = document.createElement("button");
+    m.className = "mark"; m.style.left = pct(s.f) + "%";
+    m.title = `${fmt(s.f)} · ${s.n}`; m.setAttribute("aria-label", `ฟัง ${s.n} ${fmt(s.f)} MHz`);
+    m.onclick = () => play(i);
+    $("dial").appendChild(m);
+  });
+}
+
+function buildChips() {
+  $("chips").innerHTML = "";
+  TAGS.forEach(([k, label]) => {
+    const b = document.createElement("button");
+    b.className = "chip"; b.textContent = label;
+    b.setAttribute("aria-pressed", String(k === filter));
+    b.onclick = () => { filter = k; buildChips(); render(); };
+    $("chips").appendChild(b);
+  });
+}
+
+function render() {
+  const q = query.trim().toLowerCase();
+  visible = STATIONS.map((s, i) => i).filter(i => {
+    const s = STATIONS[i];
+    if (filter === "fav" && !favs.has(s.u)) return false;
+    if (!["all", "fav"].includes(filter) && s.t !== filter) return false;
+    if (q && !(s.n.toLowerCase().includes(q) || (s.f != null && fmt(s.f).startsWith(q)))) return false;
+    return true;
+  });
+  const grid = $("grid");
+  grid.innerHTML = "";
+  if (!visible.length) {
+    grid.innerHTML = `<p class="empty">${filter === "fav" ? "ยังไม่มีสถานีโปรด กด ☆ ที่การ์ดสถานีเพื่อเพิ่ม" : "ไม่พบสถานีที่ตรงกับคำค้น"}</p>`;
+  }
+  visible.forEach(i => {
+    const s = STATIONS[i];
+    const card = document.createElement("div");
+    card.className = "st" + (i === current ? " playing" : "");
+    card.tabIndex = 0; card.setAttribute("role", "button");
+    card.setAttribute("aria-label", `ฟัง ${s.n}`);
+    const fq = s.f != null ? `${fmt(s.f)}<small>MHz</small>` : `NET<small>ONLINE</small>`;
+    const bits = [TAGNAME[s.t], s.c, s.b ? s.b + "k" : ""].filter(Boolean).map(x => `<span>${x}</span>`).join("");
+    const http = !s.s ? `<span class="http" title="สตรีม http อาจถูกเบราว์เซอร์บล็อกบนหน้า https">http</span>` : "";
+    card.innerHTML = `<div class="fq">${fq}</div><div class="meta"><div class="nm"></div><div class="sub">${bits}${http}</div></div>`;
+    card.querySelector(".nm").textContent = s.n;
+    const fav = document.createElement("button");
+    fav.className = "fav"; fav.textContent = favs.has(s.u) ? "★" : "☆";
+    fav.setAttribute("aria-pressed", String(favs.has(s.u)));
+    fav.setAttribute("aria-label", favs.has(s.u) ? "เอาออกจากโปรด" : "เพิ่มในโปรด");
+    fav.onclick = e => { e.stopPropagation(); favs.has(s.u) ? favs.delete(s.u) : favs.add(s.u); store.set("kt-favs", [...favs]); render(); };
+    card.appendChild(fav);
+    card.onclick = () => (i === current ? toggle() : play(i));
+    card.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); card.click(); } };
+    grid.appendChild(card);
+  });
+  $("count").textContent = `${visible.length} / ${STATIONS.length} สถานี`;
+}
+
+function setStatus(text, err = false) {
+  $("statusText").textContent = text;
+  $("status").classList.toggle("err", err);
+}
+function setOn(on) {
+  document.body.classList.toggle("on", on);
+  $("tuner").classList.toggle("on", on);
+  $("lampText").textContent = on ? "ON AIR" : "STANDBY";
+  $("playIcon").innerHTML = on ? '<path d="M6 4h4v16H6zM14 4h4v16h-4z"/>' : '<path d="M7 4v16l13-8z"/>';
+  $("play").setAttribute("aria-label", on ? "หยุด" : "เล่น");
+}
+
+function play(i) {
+  const s = STATIONS[i];
+  current = i;
+  if (hls) { hls.destroy(); hls = null; }
+  audio.pause(); audio.removeAttribute("src"); audio.load();
+  $("nowName").textContent = s.n;
+  $("readout").innerHTML = (s.f != null ? fmt(s.f) : "NET") + "<span>" + (s.f != null ? "MHz" : "STREAM") + "</span>";
+  $("needle").style.left = (s.f != null ? pct(s.f) : 100) + "%";
+  const home = $("home");
+  if (s.h && /^https?:/.test(s.h)) { home.href = s.h; home.hidden = false; } else home.hidden = true;
+  setStatus("กำลังเชื่อมต่อ…");
+  if (s.k === "hls" && !audio.canPlayType("application/vnd.apple.mpegurl") && window.Hls && Hls.isSupported()) {
+    hls = new Hls();
+    hls.on(Hls.Events.ERROR, (_, d) => { if (d.fatal) fail(s); });
+    hls.loadSource(s.u); hls.attachMedia(audio);
+    hls.on(Hls.Events.MANIFEST_PARSED, () => audio.play().catch(() => fail(s)));
+  } else {
+    audio.src = s.u;
+    audio.play().catch(() => fail(s));
+  }
+  if ("mediaSession" in navigator) navigator.mediaSession.metadata = new MediaMetadata({ title: s.n, artist: s.f != null ? fmt(s.f) + " MHz" : "Online", album: "คลื่นไทย" });
+  render();
+}
+function fail(s) {
+  setOn(false);
+  const mixed = !s.s && location.protocol === "https:";
+  setStatus(mixed ? "เล่นไม่ได้: สตรีมเป็น http แต่หน้านี้เปิดผ่าน https" : "เล่นไม่ได้: สถานีอาจออฟไลน์ ลองสถานีอื่น", true);
+}
+function toggle() {
+  if (current < 0) { if (visible.length) play(visible[0]); return; }
+  if (audio.paused) { audio.play().catch(() => play(current)); } else { audio.pause(); }
+}
+function step(d) {
+  const list = visible.length ? visible : STATIONS.map((_, i) => i);
+  const pos = list.indexOf(current);
+  play(list[(pos + d + list.length) % list.length]);
+}
+
+audio.addEventListener("playing", () => { setOn(true); setStatus("กำลังออกอากาศ"); });
+audio.addEventListener("waiting", () => setStatus("กำลังบัฟเฟอร์…"));
+audio.addEventListener("pause", () => { setOn(false); if (current >= 0 && !$("status").classList.contains("err")) setStatus("หยุดชั่วคราว"); });
+audio.addEventListener("error", () => { if (current >= 0 && audio.getAttribute("src")) fail(STATIONS[current]); });
+
+$("play").onclick = toggle;
+$("prev").onclick = () => step(-1);
+$("next").onclick = () => step(1);
+$("vol").oninput = e => { audio.volume = +e.target.value; store.set("kt-vol", audio.volume); };
+$("q").oninput = e => { query = e.target.value; render(); };
+document.addEventListener("keydown", e => {
+  if (e.target.matches("input")) return;
+  if (e.code === "Space" && !e.target.closest(".st, button")) { e.preventDefault(); toggle(); }
+  if (e.key === "ArrowRight") step(1);
+  if (e.key === "ArrowLeft") step(-1);
+});
+if ("mediaSession" in navigator) {
+  navigator.mediaSession.setActionHandler("nexttrack", () => step(1));
+  navigator.mediaSession.setActionHandler("previoustrack", () => step(-1));
+}
+
+buildDial(); buildChips(); render();
+</script>
+</body>
+</html>
