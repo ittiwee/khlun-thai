@@ -12,3 +12,6 @@ export const FM_MIN = 87.5;
 export const FM_MAX = 108;
 
 export const DEFAULT_VOLUME = 0.8;
+
+// ประเทศเริ่มต้น (ขั้น 4 จะเดาจากภาษา/timezone ของเครื่อง)
+export const DEFAULT_COUNTRY = 'TH';

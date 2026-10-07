@@ -12,12 +12,14 @@
 <div class="wrap">
   <header class="top">
     <h1>คลื่นไทย<small>วิทยุออนไลน์จากทั่วโลก เลือกสถานีแล้วกดฟังได้เลย</small></h1>
-    <div class="count" id="count"></div>
+    <div class="where" id="where" aria-live="polite"><span class="where-nm" id="whereName"></span><span class="count" id="count"></span></div>
   </header>
 
   <section class="tuner" id="tuner" aria-label="หน้าปัดคลื่น FM"></section>
 
   <div class="grid" id="grid"></div>
+
+  <section class="countries" id="countries" aria-labelledby="countries-title"></section>
 
   <footer class="credit">ข้อมูลสถานีจาก <a href="https://www.radio-browser.info/" target="_blank" rel="noopener">Radio Browser (radio-browser.info)</a></footer>
 </div>

@@ -1,11 +1,13 @@
 // จุดเริ่ม: ประกอบทุก module
 import './styles/tokens.css';
 import './styles/app.css';
-import { DEFAULT_VOLUME } from './config.js';
+import { DEFAULT_VOLUME, DEFAULT_COUNTRY } from './config.js';
+import { api } from './api.js';
 import { createPlayer } from './player.js';
 import { createTuner, fmtFreq } from './ui/tuner.js';
 import { createBar } from './ui/bar.js';
 import { createStationList } from './ui/stations.js';
+import { createCountryGrid, localizeCountries, thaiName, flagEl } from './ui/countries.js';
 import { SAMPLE_STATIONS } from './sample-stations.js';
 
 const $ = (id) => document.getElementById(id);
@@ -51,4 +53,41 @@ bar.setVolume(DEFAULT_VOLUME);
 
 tuner.setStations(items);
 list.setStations(items);
-$('count').textContent = `${items.length} สถานี`;
+
+// ประเทศ
+const nf = new Intl.NumberFormat('th');
+let countries = [];
+let country = DEFAULT_COUNTRY;
+const countryGrid = createCountryGrid($('countries'), { onSelect: (c) => selectCountry(c.code, { scroll: true }) });
+
+function renderWhere() {
+  const c = countries.find((x) => x.code === country);
+  const name = $('whereName');
+  name.replaceChildren(flagEl(country), document.createTextNode(c?.th ?? thaiName(country)));
+  $('count').textContent = c ? `${nf.format(c.stationcount)} สถานี` : '';
+}
+
+function selectCountry(code, { scroll = false } = {}) {
+  country = code;
+  countryGrid.setSelected(code);
+  renderWhere();
+  // ขั้น 3: โหลดสถานีหน้า 1 ของประเทศนี้
+  if (scroll) {
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
+  }
+}
+
+async function loadCountries() {
+  countryGrid.setLoading();
+  try {
+    countries = localizeCountries(await api.getCountries());
+    countryGrid.setCountries(countries);
+    selectCountry(country);
+  } catch {
+    countryGrid.setError(loadCountries);
+  }
+}
+
+renderWhere();
+loadCountries();

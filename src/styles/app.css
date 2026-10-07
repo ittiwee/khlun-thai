@@ -97,3 +97,43 @@ h1 small { display: block; font: 500 13px/1.4 var(--font-body); color: var(--mut
   .vol { order: 3; flex-basis: 100%; }
   .home { display: none; }
 }
+
+/* header: ประเทศที่เลือก */
+.where { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.where .fi { font-size: 18px; border-radius: 2px; }
+.where-nm { font: 600 15px var(--font-display); display: inline-flex; align-items: center; gap: 8px; }
+
+/* country grid */
+.countries { display: grid; gap: 12px; }
+.sec-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.sec-head h2 { font: 600 20px/1.2 var(--font-display); margin: 0; }
+.sec-head .search { flex: 0 1 320px; }
+.search { min-width: 0; position: relative; }
+.search input {
+  width: 100%; font: 15px var(--font-body); color: var(--ink); background: var(--panel);
+  border: 1px solid var(--line); border-radius: 999px; padding: 10px 16px;
+}
+.search input:focus-visible { outline: 2px solid var(--needle); outline-offset: 1px; }
+.cgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(170px, 100%), 1fr)); gap: 8px; }
+.ct {
+  display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: center; min-height: 44px; min-width: 0;
+  background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 8px 10px; color: inherit; font: 500 14px/1.3 var(--font-body); text-align: left; cursor: pointer;
+}
+.ct:hover { border-color: var(--muted); }
+.ct:focus-visible { outline: 2px solid var(--needle); outline-offset: 2px; }
+.ct[aria-current="true"] { border-color: var(--needle); box-shadow: inset 3px 0 0 var(--needle); }
+.ct .fi { font-size: 20px; border-radius: 2px; box-shadow: 0 0 0 1px var(--line); }
+.ct-nm { min-width: 0; overflow-wrap: anywhere; }
+.ct-n { font: 12px var(--font-mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+.ct.sk { cursor: default; background: var(--chip); border-color: transparent; animation: sk 1.2s ease-in-out infinite; }
+@keyframes sk { 50% { opacity: .55; } }
+@media (prefers-reduced-motion: reduce) { .ct.sk { animation: none; } }
+.more { display: flex; justify-content: center; }
+.chip {
+  font: 500 13px var(--font-body); color: var(--ink); background: var(--chip); border: 1px solid transparent;
+  border-radius: 999px; padding: 7px 14px; cursor: pointer;
+}
+.chip:focus-visible { outline: 2px solid var(--needle); outline-offset: 2px; }
+.error { grid-column: 1 / -1; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; color: var(--warn); }
+.error p { margin: 0; }
