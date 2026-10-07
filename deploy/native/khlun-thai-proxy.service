@@ -1,0 +1,33 @@
+# systemd unit ของ stream proxy (deploy แบบไม่ใช้ Docker)
+# ติดตั้ง: cp deploy/native/khlun-thai-proxy.service /etc/systemd/system/ && systemctl enable --now khlun-thai-proxy
+[Unit]
+Description=khlun-thai stream proxy
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=khlun
+Group=khlun
+WorkingDirectory=/opt/khlun-thai/server
+# ค่า config อ่านจาก /opt/khlun-thai/server/.env (ดู server/.env.example)
+Environment=NODE_ENV=production
+ExecStart=/usr/bin/node src/index.js
+Restart=on-failure
+RestartSec=3
+# proxy ปิดสตรีมที่ค้างภายใน 10 วินาทีเมื่อได้ SIGTERM
+KillSignal=SIGTERM
+TimeoutStopSec=15
+
+# จำกัดสิทธิ์: proxy ไม่ต้องเขียนไฟล์ใดๆ
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+LockPersonality=true
+MemoryMax=512M
+LimitNOFILE=8192
+
+[Install]
+WantedBy=multi-user.target

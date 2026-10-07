@@ -98,6 +98,47 @@ workflow [`.github/workflows/pages.yml`](.github/workflows/pages.yml) ตั้�
 หน้าเว็บ + stream proxy บนเซิร์ฟเวอร์ของตัวเอง ดูวิธีรันในหัวข้อ [รันด้วย docker compose](#รันด้วย-docker-compose) ด้านล่าง
 ให้วาง reverse proxy ที่ทำ https (เช่น Caddy, Cloudflare Tunnel) ไว้หน้า port `8080` แล้ว build หน้าเว็บด้วย `SITE_URL=https://radio.example.com/`
 
+### เซิร์ฟเวอร์ Linux แบบไม่ใช้ Docker (มี proxy)
+
+เหมาะกับเครื่องที่มี nginx คุม port 80/443 อยู่แล้ว (เช่นมีเว็บอื่นอยู่ในเครื่องเดียวกัน) — ไฟล์อยู่ใน [`deploy/native/`](deploy/native/)
+
+```bash
+# ครั้งแรก (root) — ต้องมี Node.js 20+, git, nginx, certbot
+useradd --system --create-home --home-dir /var/lib/khlun --shell /usr/sbin/nologin khlun
+install -d -o khlun -g khlun /opt/khlun-thai
+sudo -u khlun git clone https://github.com/<owner>/khlun-thai.git /opt/khlun-thai
+cd /opt/khlun-thai
+sudo -u khlun env HOME=/var/lib/khlun npm ci
+sudo -u khlun env HOME=/var/lib/khlun SITE_URL=https://radio.example.com/ npm run build
+cd server && sudo -u khlun env HOME=/var/lib/khlun npm ci --omit=dev
+
+# server/.env (chmod 600, owner khlun)
+#   PORT=3010
+#   HOST=127.0.0.1
+#   ALLOWED_ORIGIN=https://radio.example.com
+#   TRUSTED_PROXY=127.0.0.1
+
+cp deploy/native/khlun-thai-proxy.service /etc/systemd/system/
+systemctl daemon-reload && systemctl enable --now khlun-thai-proxy
+
+# nginx: แก้ server_name / path cert ใน deploy/native/radio.weworknetwork.net.conf ให้เป็นโดเมนของคุณ
+# ออก cert ด้วย webroot ก่อน (ต้องมี server block port 80 ที่เสิร์ฟ /.well-known/acme-challenge/ จาก /var/www/html)
+certbot certonly --webroot -w /var/www/html -d radio.example.com --deploy-hook "systemctl reload nginx"
+cp deploy/native/radio.weworknetwork.net.conf /etc/nginx/sites-available/radio.example.com
+ln -s /etc/nginx/sites-available/radio.example.com /etc/nginx/sites-enabled/
+nginx -t && systemctl reload nginx
+```
+
+อัปเดตเวอร์ชันใหม่:
+
+```bash
+cd /opt/khlun-thai && sudo -u khlun git pull --ff-only
+sudo -u khlun env HOME=/var/lib/khlun npm ci && sudo -u khlun env HOME=/var/lib/khlun SITE_URL=https://radio.example.com/ npm run build
+cd server && sudo -u khlun env HOME=/var/lib/khlun npm ci --omit=dev && systemctl restart khlun-thai-proxy
+```
+
+ดู log: `journalctl -u khlun-thai-proxy -f`
+
 ## Stream proxy
 
 สตรีมวิทยุจำนวนมากเป็น `http://` เมื่อหน้าเว็บเปิดผ่าน `https://` เบราว์เซอร์จะบล็อก (mixed content)
@@ -121,6 +162,7 @@ proxy ใน [`server/`](server/) รับแค่ `stationuuid` แล้ว�
 | ตัวแปร | ค่าเริ่มต้น | ความหมาย |
 |---|---|---|
 | `PORT` | `3000` | port ที่ proxy ฟัง |
+| `HOST` | `0.0.0.0` | IP ที่ proxy ฟัง — ตั้ง `127.0.0.1` เมื่อรันตรงหลัง nginx ในเครื่องเดียวกัน |
 | `ALLOWED_ORIGIN` | `http://localhost:5173` | ค่า `Access-Control-Allow-Origin` — ใส่ origin ของหน้าเว็บจริงตอน deploy เช่น `https://radio.example.com` |
 | `TRUSTED_PROXY` | `127.0.0.1` | IP/CIDR ของ Nginx ที่อนุญาตให้เชื่อ `X-Forwarded-For` (คั่นด้วยจุลภาคได้) — ใน docker compose ตั้งให้อัตโนมัติ |
 | `MAX_STREAMS` | `200` | สตรีมพร้อมกันสูงสุดทั้งระบบ (เกิน → `503`) |
