@@ -25,6 +25,7 @@ export function createBar(root, { onToggle, onPrev, onNext, onVolume }) {
         <button type="button" class="btn" data-next aria-label="สถานีถัดไป"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 5h2v14h-2zM4 5v14l11-7z"/></svg></button>
       </div>
       <div class="now">
+        <div class="now-label">NOW PLAYING</div>
         <b data-name>เลือกสถานีเพื่อเริ่มฟัง</b>
         <div class="status" data-status role="status" aria-live="polite"><span class="eq" aria-hidden="true"><i></i><i></i><i></i></span><span data-status-text>${STATUS_TEXT.idle}</span></div>
       </div>

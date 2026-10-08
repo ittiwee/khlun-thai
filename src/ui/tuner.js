@@ -7,7 +7,13 @@ const pct = (f) => ((f - FM_MIN) / (FM_MAX - FM_MIN)) * 100;
 export function createTuner(root, { onSelect }) {
   root.innerHTML = `
     <div class="tuner-head"><span>FM · MHz</span><span class="lamp"><i></i><span data-lamp>STANDBY</span></span></div>
-    <div class="readout" data-readout>—<span>MHz</span></div>
+    <div class="tuner-main">
+      <div>
+        <div class="tuner-label">NOW TUNING · <span class="th">ความถี่ที่เลือก</span></div>
+        <div class="readout" data-readout>—<span>MHz</span></div>
+      </div>
+      <div class="signal" aria-hidden="true">${Array.from({ length: 16 }, (_, i) => `<i style="--i:${i}"></i>`).join('')}</div>
+    </div>
     <div class="dial" data-dial><div class="scale" data-scale></div><div class="needle" data-needle style="left:0%"></div></div>`;
   const $ = (k) => root.querySelector(`[data-${k}]`);
   const dial = $('dial');

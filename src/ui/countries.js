@@ -62,7 +62,10 @@ export function flagEl(code) {
 export function createCountryGrid(root, { onSelect }) {
   root.innerHTML = `
     <div class="sec-head">
-      <h2 id="countries-title">เลือกประเทศ</h2>
+      <div>
+        <div class="overline">Explore the world</div>
+        <h2 id="countries-title">เลือกประเทศ</h2>
+      </div>
       <div class="search"><input data-q type="search" placeholder="ค้นหาประเทศ เช่น ญี่ปุ่น, japan, jp" aria-label="ค้นหาประเทศ"></div>
     </div>
     <div class="cgrid" data-grid role="group" aria-labelledby="countries-title"></div>

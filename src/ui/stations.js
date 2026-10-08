@@ -9,9 +9,16 @@ export function formatCount(n) {
   return `${v >= 100 ? Math.round(v) : Number(v.toFixed(1))}${unit}`;
 }
 
+// สีของกล่องโลโก้คงที่ตามชื่อสถานี (6 แบบ ดู --art-0..5 ใน tokens.css)
+export function artIndex(name) {
+  let h = 0;
+  for (const ch of String(name)) h = (h * 31 + ch.codePointAt(0)) >>> 0;
+  return h % 6;
+}
+
 function logo(station) {
   const box = document.createElement('div');
-  box.className = 'logo';
+  box.className = `art art-${artIndex(station.name)}`;
   box.setAttribute('aria-hidden', 'true');
   const initial = () => {
     box.replaceChildren();
@@ -58,6 +65,7 @@ export function createStationList(root, { onPlay, canPlay = () => true, isFavori
     const nm = document.createElement('div');
     nm.className = 'nm';
     nm.textContent = station.name;
+    nm.title = station.name; // ชื่อยาวถูกตัดที่ 2 บรรทัด — ดูชื่อเต็มได้
 
     const tags = document.createElement('div');
     tags.className = 'tg';
@@ -172,7 +180,7 @@ export function createStationList(root, { onPlay, canPlay = () => true, isFavori
         const s = document.createElement('div');
         s.className = 'st sk';
         s.setAttribute('aria-hidden', 'true');
-        s.innerHTML = '<div class="logo"></div><div class="meta"><div class="bar1"></div><div class="bar2"></div></div>';
+        s.innerHTML = '<div class="art"></div><div class="meta"><div class="bar1"></div><div class="bar2"></div></div>';
         return s;
       }),
     );

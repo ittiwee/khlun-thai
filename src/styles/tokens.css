@@ -1,29 +1,147 @@
-/* สี ฟอนต์ ระยะ — สว่างเป็นค่าเริ่มต้น มืดตามเครื่อง หรือบังคับด้วย data-theme */
+/* สี ฟอนต์ ระยะ — สว่างเป็นค่าเริ่มต้น มืดตามเครื่อง หรือบังคับด้วย data-theme
+   ใช้ทุกสีผ่าน token เท่านั้น (app.css ไม่มีสีฝังตรง) */
 :root {
-  --bg: #e9ece6;
-  --panel: #f6f7f3;
-  --face: #f3ecd6;
-  --face-ink: #4a3f22;
-  --ink: #1b221e;
-  --muted: #5c6760;
-  --line: #cfd5cc;
-  --needle: #c8401f;
-  --lamp: #e39a2c;
-  --chip: #dde2d9;
-  --warn: #9a5a00;
+  /* พื้นหลัง */
+  --bg: #f3f5fb;
+  --bg-glow-1: rgba(99, 102, 241, .14);
+  --bg-glow-2: rgba(20, 184, 166, .10);
+  --grid-line: rgba(30, 50, 110, .045);
+
+  /* พื้นผิว */
+  --panel: #ffffff;
+  --card-a: #ffffff;
+  --card-b: #f6f8fd;
+  --card-playing: rgba(91, 108, 240, .09);
+  --face-a: #e9edff;
+  --face-b: #f7f9ff;
+  --face-glow: rgba(99, 102, 241, .20);
+  --face-ring: rgba(91, 108, 240, .055);
+  --face-ink: #131a2e;
+  --bar-bg: rgba(255, 255, 255, .88);
+
+  /* ตัวอักษร เส้น */
+  --ink: #131a2e;
+  --muted: #586581;
+  --line: rgba(24, 40, 90, .12);
+  --line-strong: rgba(68, 83, 214, .40);
+  --tick: #6b7aa0;
+
+  /* สีเน้น */
+  --accent: #5b6cf0;
+  --accent-2: #4453d6;
+  --accent-ink: #ffffff;
+  --accent-soft: rgba(91, 108, 240, .12);
+  /* ปุ่ม/chip ที่มีตัวหนังสือขาวบนพื้นสี — คุม contrast ≥ 4.5:1 */
+  --fill-a: #5163e8;
+  --fill-b: #4453d6;
+  --accent-text: #4453d6;
+  --needle: #0b8c88;
+  --needle-glow: rgba(14, 159, 154, .40);
+  --lamp: #10b981;
+  --chip: rgba(30, 50, 110, .06);
+  --chip-ink: #3a4663;
+  --warn: #b45309;
+  --fav: #d97706;
+  --focus: #4453d6;
+  --shadow: 0 10px 28px rgba(20, 30, 70, .08);
+  --shadow-lift: 0 16px 36px rgba(20, 30, 70, .12);
+
+  /* กล่องโลโก้สถานี (สีคงที่ตามชื่อสถานี) */
+  --art-0: linear-gradient(135deg, #6d7cf5, #4651c7);
+  --art-1: linear-gradient(135deg, #8a5cc9, #4d3a92);
+  --art-2: linear-gradient(135deg, #2f84b5, #24507f);
+  --art-3: linear-gradient(135deg, #b9803f, #7a4a5e);
+  --art-4: linear-gradient(135deg, #3b9183, #2a5866);
+  --art-5: linear-gradient(135deg, #c25b7a, #6d3a6e);
+  --art-ink: #f4f7ff;
+
   --font-display: "Chakra Petch", "Sukhumvit Set", "Tahoma", sans-serif;
   --font-body: "IBM Plex Sans Thai", "Sukhumvit Set", "Leelawadee UI", "Tahoma", sans-serif;
   --font-mono: "IBM Plex Mono", "IBM Plex Sans Thai", ui-monospace, "SFMono-Regular", Menlo, monospace;
-  --radius: 10px;
+  --radius-sm: 12px;
+  --radius: 18px;
+  --radius-lg: 28px;
   color-scheme: light;
 }
+
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #121714; --panel: #1a211d; --face: #0d110f; --face-ink: #e9b25a; --ink: #e4ebe6; --muted: #93a099;
-    --line: #2c3631; --needle: #ff6a43; --lamp: #f2ae45; --chip: #242d28; --warn: #f0b45c; color-scheme: dark;
+    --bg: #070b16;
+    --bg-glow-1: rgba(75, 85, 206, .24);
+    --bg-glow-2: rgba(22, 166, 175, .13);
+    --grid-line: rgba(153, 176, 227, .025);
+    --panel: #111a2c;
+    --card-a: rgba(27, 38, 63, .92);
+    --card-b: rgba(15, 23, 40, .95);
+    --card-playing: rgba(77, 92, 173, .33);
+    --face-a: #1b2441;
+    --face-b: #101c32;
+    --face-glow: rgba(81, 104, 225, .31);
+    --face-ring: rgba(149, 172, 255, .07);
+    --face-ink: #f2f6ff;
+    --bar-bg: rgba(13, 20, 36, .90);
+    --ink: #f2f6ff;
+    --muted: #9caac3;
+    --line: rgba(174, 196, 237, .13);
+    --line-strong: rgba(141, 164, 246, .48);
+    --tick: #91a2c8;
+    --accent: #7489ff;
+    --accent-2: #5268dd;
+    --accent-ink: #ffffff;
+    --accent-soft: rgba(116, 137, 255, .16);
+    --fill-a: #5163e8;
+    --fill-b: #4453d6;
+    --accent-text: #8c9dff;
+    --needle: #65e4e1;
+    --needle-glow: rgba(101, 228, 225, .55);
+    --lamp: #4ce2b4;
+    --chip: rgba(255, 255, 255, .055);
+    --chip-ink: #b4c1db;
+    --warn: #ffc178;
+    --fav: #ffcf75;
+    --focus: #b2c1ff;
+    --shadow: 0 14px 36px rgba(0, 0, 0, .22);
+    --shadow-lift: 0 18px 40px rgba(0, 0, 0, .30);
+    color-scheme: dark;
   }
 }
+
 :root[data-theme="dark"] {
-  --bg: #121714; --panel: #1a211d; --face: #0d110f; --face-ink: #e9b25a; --ink: #e4ebe6; --muted: #93a099;
-  --line: #2c3631; --needle: #ff6a43; --lamp: #f2ae45; --chip: #242d28; --warn: #f0b45c; color-scheme: dark;
+  --bg: #070b16;
+  --bg-glow-1: rgba(75, 85, 206, .24);
+  --bg-glow-2: rgba(22, 166, 175, .13);
+  --grid-line: rgba(153, 176, 227, .025);
+  --panel: #111a2c;
+  --card-a: rgba(27, 38, 63, .92);
+  --card-b: rgba(15, 23, 40, .95);
+  --card-playing: rgba(77, 92, 173, .33);
+  --face-a: #1b2441;
+  --face-b: #101c32;
+  --face-glow: rgba(81, 104, 225, .31);
+  --face-ring: rgba(149, 172, 255, .07);
+  --face-ink: #f2f6ff;
+  --bar-bg: rgba(13, 20, 36, .90);
+  --ink: #f2f6ff;
+  --muted: #9caac3;
+  --line: rgba(174, 196, 237, .13);
+  --line-strong: rgba(141, 164, 246, .48);
+  --tick: #91a2c8;
+  --accent: #7489ff;
+  --accent-2: #5268dd;
+  --accent-ink: #ffffff;
+  --accent-soft: rgba(116, 137, 255, .16);
+  --fill-a: #5163e8;
+  --fill-b: #4453d6;
+  --accent-text: #8c9dff;
+  --needle: #65e4e1;
+  --needle-glow: rgba(101, 228, 225, .55);
+  --lamp: #4ce2b4;
+  --chip: rgba(255, 255, 255, .055);
+  --chip-ink: #b4c1db;
+  --warn: #ffc178;
+  --fav: #ffcf75;
+  --focus: #b2c1ff;
+  --shadow: 0 14px 36px rgba(0, 0, 0, .22);
+  --shadow-lift: 0 18px 40px rgba(0, 0, 0, .30);
+  color-scheme: dark;
 }
