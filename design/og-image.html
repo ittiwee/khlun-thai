@@ -7,34 +7,44 @@
 <style>
   html, body { margin: 0; }
   body {
-    width: 1200px; height: 630px; overflow: hidden; box-sizing: border-box;
-    background: #121714; color: #e4ebe6; padding: 64px 72px 0;
-    font-family: "IBM Plex Sans Thai", sans-serif;
+    width: 1200px; height: 630px; overflow: hidden; box-sizing: border-box; position: relative;
+    color: #f2f6ff; padding: 64px 72px 0; font-family: "IBM Plex Sans Thai", sans-serif;
     display: grid; grid-template-rows: auto 1fr;
+    background:
+      radial-gradient(ellipse 700px 520px at 0% -10%, rgba(75, 85, 206, .45), transparent 70%),
+      radial-gradient(ellipse 700px 600px at 100% 0%, rgba(22, 166, 175, .25), transparent 72%),
+      #070b16;
   }
-  .top { display: flex; align-items: center; gap: 36px; }
-  .logo { width: 150px; height: 150px; flex: none; border-radius: 33px; box-shadow: 0 0 0 2px #2c3631; }
-  h1 { font: 700 128px/1 "Chakra Petch", sans-serif; margin: 0; letter-spacing: .01em; }
-  .sub { font-size: 40px; color: #c9d3cd; margin-top: 14px; }
-  .stats { font: 500 26px "IBM Plex Mono", "IBM Plex Sans Thai", monospace; color: #93a099; margin-top: 10px; letter-spacing: .02em; }
+  body::before {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background-image: linear-gradient(rgba(153, 176, 227, .05) 1px, transparent 1px), linear-gradient(90deg, rgba(153, 176, 227, .05) 1px, transparent 1px);
+    background-size: 45px 45px;
+  }
+  .top { position: relative; display: flex; align-items: center; gap: 36px; }
+  .logo { width: 150px; height: 150px; flex: none; border-radius: 38px; box-shadow: 0 18px 50px rgba(81, 99, 232, .45); }
+  .over { font: 600 20px "IBM Plex Mono", monospace; letter-spacing: .25em; color: #8c9dff; }
+  h1 { font: 700 124px/1 "Chakra Petch", sans-serif; margin: 26px 0 0; letter-spacing: -.03em; }
+  .sub { font-size: 38px; color: #c9d3ea; margin-top: 12px; }
+  .stats { font: 500 25px "IBM Plex Mono", "IBM Plex Sans Thai", monospace; color: #9caac3; margin-top: 8px; }
   .face {
-    align-self: end; margin: 0 -72px; height: 190px; position: relative;
-    background: #0d110f; border-top: 2px solid #2c3631; color: #e9b25a;
+    position: relative; align-self: end; margin: 0 -72px; height: 190px;
+    background: linear-gradient(120deg, #1b2441, #101c32); border-top: 1px solid rgba(156, 173, 255, .3); color: #a6b4d3;
   }
-  .scale { position: absolute; left: 72px; right: 72px; top: 92px; height: 0; border-top: 2px solid currentColor; }
-  .tick { position: absolute; bottom: 0; width: 2px; background: currentColor; }
-  .tick.major { height: 30px; } .tick.minor { height: 14px; opacity: .6; }
+  .scale { position: absolute; left: 72px; right: 72px; top: 92px; height: 0; border-top: 2px solid rgba(183, 207, 255, .45); }
+  .tick { position: absolute; bottom: 0; width: 2px; background: #91a2c8; }
+  .tick.major { height: 30px; } .tick.minor { height: 14px; opacity: .55; }
   .num { position: absolute; top: 14px; transform: translateX(-50%); font: 500 24px "IBM Plex Mono", monospace; }
-  .needle { position: absolute; top: 18px; bottom: 30px; width: 6px; margin-left: -3px; background: #ff6a43; border-radius: 3px; }
-  .needle::after { content: ""; position: absolute; top: -10px; left: -7px; width: 20px; height: 20px; border-radius: 50%; background: #ff6a43; }
-  .readout { position: absolute; right: 72px; top: -96px; font: 500 64px "IBM Plex Mono", monospace; color: #e9b25a; }
-  .readout span { font-size: 26px; margin-left: 8px; }
+  .needle { position: absolute; top: 18px; bottom: 30px; width: 6px; margin-left: -3px; background: #65e4e1; border-radius: 3px; box-shadow: 0 0 22px #65e4e1; }
+  .needle::after { content: ""; position: absolute; top: -10px; left: -7px; width: 20px; height: 20px; border-radius: 50%; background: #65e4e1; box-shadow: 0 0 22px #65e4e1; }
+  .readout { position: absolute; right: 72px; top: -112px; font: 600 80px "Chakra Petch", sans-serif; letter-spacing: -.04em; color: #f2f6ff; text-shadow: 0 0 30px rgba(124, 149, 255, .5); }
+  .readout span { font: 600 24px "IBM Plex Mono", monospace; margin-left: 10px; color: #92a8e2; letter-spacing: 0; }
 </style>
 </head>
 <body>
   <div class="top">
     <img class="logo" src="../public/favicon.svg" alt="">
     <div>
+      <div class="over">WORLD RADIO</div>
       <h1>คลื่นไทย</h1>
       <div class="sub">ฟังวิทยุออนไลน์ฟรี จากทุกประเทศทั่วโลก</div>
       <div class="stats">60,000+ สถานี · 200+ ประเทศ</div>
