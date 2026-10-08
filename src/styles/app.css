@@ -132,7 +132,8 @@ h1 small { display: block; font: 400 12.5px/1.5 var(--font-body); color: var(--m
   mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M10 3a7 7 0 0 1 5.6 11.2l5.1 5.1-1.4 1.4-5.1-5.1A7 7 0 1 1 10 3zm0 2a5 5 0 1 0 0 10 5 5 0 0 0 0-10z'/%3E%3C/svg%3E") center / contain no-repeat;
 }
 .search input {
-  width: 100%; min-width: 0; font: 14.5px var(--font-body); color: var(--ink); background: var(--panel);
+  /* 16px ขึ้นไป: Safari บน iPhone จะไม่ซูมหน้าเองตอนแตะช่องพิมพ์ (ซูมค้างแล้วเลื่อนซ้ายขวาได้) */
+  width: 100%; min-width: 0; font: 16px var(--font-body); color: var(--ink); background: var(--panel);
   border: 1px solid var(--line); border-radius: 14px; padding: 12px 16px 12px 44px;
   transition: border-color .2s, box-shadow .2s;
 }
@@ -230,7 +231,7 @@ h1 small { display: block; font: 400 12.5px/1.5 var(--font-body); color: var(--m
 .pg-go { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); margin-left: 6px; font-variant-numeric: tabular-nums; }
 .pg-go input {
   width: 74px; height: 42px; padding: 0 10px; border-radius: 12px; border: 1px solid var(--line);
-  background: var(--panel); color: var(--ink); font: 14px var(--font-mono);
+  background: var(--panel); color: var(--ink); font: 16px var(--font-mono);
 }
 .pg-go input:focus { outline: 0; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
 
@@ -309,6 +310,7 @@ h1 small { display: block; font: 400 12.5px/1.5 var(--font-body); color: var(--m
   .signal i { width: 3px; }
   .num { font-size: 9px; }
   .sec-title h2, .sec-head h2 { font-size: 21px; }
+  .sec-head .search { flex: 1 1 100%; }
   .chips { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin-inline: -14px; padding-inline: 14px; }
   .chip { flex: none; white-space: nowrap; }
   .grid { gap: 10px; }
